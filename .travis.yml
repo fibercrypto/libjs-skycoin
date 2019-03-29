@@ -2,7 +2,8 @@ language: nodejs
 
 before_script:
 - make build_axios_client
+- make build_node_client
 - make build_tester
 
 script:
-- make test_axios_client
+- make test_clients
