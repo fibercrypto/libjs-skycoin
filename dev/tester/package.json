@@ -9,6 +9,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "libsky-axios": "file:../lib/skyapi/typescript-axios"
+    "libsky-axios": "file:../lib/skyapi/typescript-axios",
+    "libsky-node": "file:../lib/skyapi/typescript-node"
   }
 }
