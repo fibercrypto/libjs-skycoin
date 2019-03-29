@@ -1,0 +1,8 @@
+language: nodejs
+
+before_script:
+- make build_axios_client
+- make build_tester
+
+script:
+- make test_axios_client
