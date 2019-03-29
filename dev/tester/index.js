@@ -1,3 +1,5 @@
+"use strict";
+
 // Set BASEPATH
 const localBasePath = 'http://127.0.0.1:6420';
 const developBasePath = 'https://staging.node.skycoin.net';
