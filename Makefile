@@ -1,2 +1,8 @@
-generate_api_client_axios:
-	openapi-generator generate -g typescript-axios --additional-properties=npmName=libsky-axios,npmVersion=0.25.1,supportES6=true -o dev/lib/skyapi/typescript-axios  -i skycoin.v0.25.1.openapi.v2.yml
+test_axios_client:
+	(cd ./dev/tester/ && npm run test )
+
+build_axios_client:
+	(cd './dev/lib/skyapi/typescript-axios/' && npm install && npm run build)
+
+build_tester:
+	(cd './dev/tester/' && npm run setup)
