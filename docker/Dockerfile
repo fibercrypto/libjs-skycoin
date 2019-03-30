@@ -2,20 +2,24 @@ FROM node
 
 WORKDIR /skyapi-typescript
 
-COPY ../dev/lib/skyapi/typescript-axios/package*.json ./skyapi-axios/
+COPY dev/lib/skyapi/typescript-axios/package.json ./dev/lib/skyapi/typescript-axios/
 
-COPY ../dev/lib/skyapi/typescript-node/package*.json ./skyapi-node/
+COPY dev/lib/skyapi/typescript-node/package.json ./dev/lib/skyapi/typescript-node/
 
-RUN (cd ./skyapi-axios/ && npm install)
+RUN (cd ./dev/lib/skyapi/typescript-axios/ && npm install )
 
-RUN (cd ./skyapi-node/ && npm install)
+RUN (cd ./dev/lib/skyapi/typescript-node/ && npm install )
 
-COPY ../dev/lib/skyapi/typescript-axios/* ./skyapi-axios/
+COPY dev/lib/skyapi/typescript-axios/ ./dev/lib/skyapi/typescript-axios/
 
-COPY ../dev/lib/skyapi/typescript-node/* ./skyapi-node/
+COPY dev/lib/skyapi/typescript-node/ ./dev/lib/skyapi/typescript-node/
 
-RUN (cd ./skyapi-axios/ && npm run build)
+RUN (cd ./dev/lib/skyapi/typescript-axios/ && npm run build )
 
-RUN (cd ./skyapi-node/ && npm run build)
+RUN (cd ./dev/lib/skyapi/typescript-node/ && npm run build )
+
+COPY dev/tester ./dev/tester
+
+RUN (cd ./dev/tester/ && npm install)
 
 CMD ["bash"]
