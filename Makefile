@@ -9,3 +9,9 @@ build_node_client:
 
 build_tester:
 	(cd './dev/tester/' && npm run setup)
+	
+docker_build:
+	docker build -t skyapi/typescript -f ./docker/Dockerfile .
+
+docker_run:
+	docker run -v ${PWD}/dev/tester:/skyapi-typescript/dev/tester -it --name=skyapi-typescript skyapi/typescript

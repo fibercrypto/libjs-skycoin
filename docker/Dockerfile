@@ -18,8 +18,4 @@ RUN (cd ./dev/lib/skyapi/typescript-axios/ && npm run build )
 
 RUN (cd ./dev/lib/skyapi/typescript-node/ && npm run build )
 
-COPY dev/tester ./dev/tester
-
-RUN (cd ./dev/tester/ && npm install)
-
 CMD ["bash"]
