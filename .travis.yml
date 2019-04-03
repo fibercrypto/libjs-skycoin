@@ -7,12 +7,5 @@ before_script:
 
 script:
 - make test_clients
-- make docker_build
-- make docker_run
-- echo 'Running tests from Docker Container'
-- cd dev/tester
-- node index.js
-- exit
-- echo 'Done running test from Docker Container'
 
 
