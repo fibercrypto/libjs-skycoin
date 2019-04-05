@@ -18,4 +18,6 @@ RUN (cd ./dev/lib/skyapi/typescript-axios/ && npm run build )
 
 RUN (cd ./dev/lib/skyapi/typescript-node/ && npm run build )
 
+RUN apt-get update -y && apt-get install vim -y && apt-get install nano -y
+
 CMD ["bash"]
