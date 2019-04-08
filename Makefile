@@ -3,7 +3,7 @@
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	
-install: build_tester build_axios_client ## Build libraries and tester
+install: build_axios_client build_tester ## Build libraries and tester
 	echo 'Done building libraries and tester.'
 
 test: test_axios_client ## Test all clients
