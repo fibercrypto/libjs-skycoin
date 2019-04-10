@@ -9,9 +9,8 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { GenerateAddressesResponseData } from './generateAddressesResponseData';
 
 
 export interface GenerateAddressesResponse { 
-    data?: GenerateAddressesResponseData;
+    data?: Array<string>;
 }

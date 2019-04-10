@@ -11,6 +11,6 @@
  */
 
 
-export interface SignMessageResponse { 
-    data?: string;
+export interface InlineResponse200 { 
+    data?: boolean;
 }

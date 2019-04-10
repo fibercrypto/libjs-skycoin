@@ -9,9 +9,24 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { FeaturesResponseDataFeatures } from './featuresResponseDataFeatures';
 
 
 export interface FeaturesResponseData { 
-    features?: FeaturesResponseDataFeatures;
+    deviceId?: string;
+    passphraseProtection: boolean;
+    label?: string;
+    fwPatch: number;
+    fwMajor: number;
+    fwMinor: number;
+    minorVersion?: number;
+    pinProtection: boolean;
+    bootloaderHash?: string;
+    majorVersion?: number;
+    pinCached: boolean;
+    vendor: string;
+    needsBackup: boolean;
+    initialized: boolean;
+    model?: string;
+    passphraseCached: boolean;
+    patchVersion?: number;
 }

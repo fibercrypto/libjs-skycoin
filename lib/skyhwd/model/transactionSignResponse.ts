@@ -9,9 +9,8 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TransactionSignResponseData } from './transactionSignResponseData';
 
 
 export interface TransactionSignResponse { 
-    data?: TransactionSignResponseData;
+    data?: Array<string>;
 }

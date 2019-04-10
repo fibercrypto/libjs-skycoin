@@ -11,6 +11,9 @@
  */
 
 
-export interface SignMessageResponse { 
-    data?: string;
+export interface TransactionOutput { 
+    addressIndex: number;
+    address: string;
+    coins: string;
+    hours: string;
 }

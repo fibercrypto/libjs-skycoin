@@ -11,6 +11,6 @@
  */
 
 
-export interface SignMessageResponse { 
+export interface CSRFResponse { 
     data?: string;
 }

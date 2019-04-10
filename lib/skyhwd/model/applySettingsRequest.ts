@@ -11,6 +11,7 @@
  */
 
 
-export interface SignMessageResponse { 
-    data?: string;
+export interface ApplySettingsRequest { 
+    label?: string;
+    usePassphrase?: boolean;
 }

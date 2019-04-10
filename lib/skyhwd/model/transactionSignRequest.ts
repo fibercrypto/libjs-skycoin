@@ -9,13 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TransactionInput } from './transactionInput';
+import { TransactionOutput } from './transactionOutput';
 
 
 export interface TransactionSignRequest { 
-    inputs: Array<string>;
-    inputIndexes: Array<number>;
-    outputAddresses: Array<string>;
-    coins: Array<number>;
-    hours: Array<number>;
-    addressIndexes?: Array<number>;
+    transactionInputs: Array<TransactionInput>;
+    transactionOutputs: Array<TransactionOutput>;
 }

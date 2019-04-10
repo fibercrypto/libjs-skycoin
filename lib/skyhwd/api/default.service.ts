@@ -18,13 +18,20 @@ import { CustomHttpUrlEncodingCodec }                        from '../encoder';
 
 import { Observable }                                        from 'rxjs/Observable';
 
+import { ApplySettingsRequest } from '../model/applySettingsRequest';
+import { CSRFResponse } from '../model/cSRFResponse';
 import { CheckMessageSignatureRequest } from '../model/checkMessageSignatureRequest';
 import { FeaturesResponse } from '../model/featuresResponse';
 import { GenerateAddressesRequest } from '../model/generateAddressesRequest';
 import { GenerateAddressesResponse } from '../model/generateAddressesResponse';
+import { GenerateMnemonicRequest } from '../model/generateMnemonicRequest';
 import { HTTPErrorResponse } from '../model/hTTPErrorResponse';
 import { HTTPSuccessResponse } from '../model/hTTPSuccessResponse';
+import { InlineResponse200 } from '../model/inlineResponse200';
+import { PassphraseRequest } from '../model/passphraseRequest';
 import { PinMatrixRequest } from '../model/pinMatrixRequest';
+import { RecoveryRequest } from '../model/recoveryRequest';
+import { SetMnemonicRequest } from '../model/setMnemonicRequest';
 import { SignMessageRequest } from '../model/signMessageRequest';
 import { SignMessageResponse } from '../model/signMessageResponse';
 import { TransactionSignRequest } from '../model/transactionSignRequest';
@@ -71,20 +78,21 @@ export class DefaultService {
     /**
      * 
      * Apply hardware wallet settings.
-     * @param label label for hardware wallet
-     * @param usePassphrase ask for passphrase before starting operation
+     * @param applySettingsRequest ApplySettingsRequest is request data for /api/v1/apply_settings
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public applySettingsPost(label: string, usePassphrase?: boolean, observe?: 'body', reportProgress?: boolean): Observable<HTTPSuccessResponse>;
-    public applySettingsPost(label: string, usePassphrase?: boolean, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<HTTPSuccessResponse>>;
-    public applySettingsPost(label: string, usePassphrase?: boolean, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<HTTPSuccessResponse>>;
-    public applySettingsPost(label: string, usePassphrase?: boolean, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
-        if (label === null || label === undefined) {
-            throw new Error('Required parameter label was null or undefined when calling applySettingsPost.');
-        }
+    public applySettingsPost(applySettingsRequest?: ApplySettingsRequest, observe?: 'body', reportProgress?: boolean): Observable<HTTPSuccessResponse>;
+    public applySettingsPost(applySettingsRequest?: ApplySettingsRequest, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<HTTPSuccessResponse>>;
+    public applySettingsPost(applySettingsRequest?: ApplySettingsRequest, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<HTTPSuccessResponse>>;
+    public applySettingsPost(applySettingsRequest?: ApplySettingsRequest, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -97,29 +105,15 @@ export class DefaultService {
 
         // to determine the Content-Type header
         const consumes: string[] = [
-            'application/x-www-form-urlencoded'
+            'application/json'
         ];
-
-        const canConsumeForm = this.canConsumeForm(consumes);
-
-        let formParams: { append(param: string, value: any): any; };
-        let useForm = false;
-        let convertFormParamsToString = false;
-        if (useForm) {
-            formParams = new FormData();
-        } else {
-            formParams = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        if (label !== undefined) {
-            formParams = formParams.append('label', <any>label) || formParams;
-        }
-        if (usePassphrase !== undefined) {
-            formParams = formParams.append('use-passphrase', <any>usePassphrase) || formParams;
-        }
-
-        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/applySettings`,
-            convertFormParamsToString ? formParams.toString() : formParams,
+        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/apply_settings`,
+            applySettingsRequest,
             {
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -141,6 +135,11 @@ export class DefaultService {
     public backupPost(observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -179,6 +178,11 @@ export class DefaultService {
 
         let headers = this.defaultHeaders;
 
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
+
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
             'application/json'
@@ -206,7 +210,7 @@ export class DefaultService {
     /**
      * 
      * Check a message signature matches the given address.
-     * @param checkMessageSignatureRequest CheckMessageSignatureRequest is request data for /api/checkMessageSignature
+     * @param checkMessageSignatureRequest CheckMessageSignatureRequest is request data for /api/v1/check_message_signature
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -216,6 +220,11 @@ export class DefaultService {
     public checkMessageSignaturePost(checkMessageSignatureRequest?: CheckMessageSignatureRequest, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -235,8 +244,85 @@ export class DefaultService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/checkMessageSignature`,
+        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/check_message_signature`,
             checkMessageSignatureRequest,
+            {
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * 
+     * check whether device is connected or not.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public connectedGet(observe?: 'body', reportProgress?: boolean): Observable<InlineResponse200>;
+    public connectedGet(observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<InlineResponse200>>;
+    public connectedGet(observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<InlineResponse200>>;
+    public connectedGet(observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+
+        let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
+
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/json'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+        ];
+
+        return this.httpClient.get<InlineResponse200>(`${this.configuration.basePath}/connected`,
+            {
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * 
+     * Returns csrf token
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public csrfGet(observe?: 'body', reportProgress?: boolean): Observable<CSRFResponse>;
+    public csrfGet(observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<CSRFResponse>>;
+    public csrfGet(observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<CSRFResponse>>;
+    public csrfGet(observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+
+        let headers = this.defaultHeaders;
+
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/json'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+        ];
+
+        return this.httpClient.get<CSRFResponse>(`${this.configuration.basePath}/csrf`,
             {
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -258,6 +344,11 @@ export class DefaultService {
     public featuresGet(observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -295,6 +386,11 @@ export class DefaultService {
 
         let headers = this.defaultHeaders;
 
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
+
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
             'application/json'
@@ -308,7 +404,7 @@ export class DefaultService {
         const consumes: string[] = [
         ];
 
-        return this.httpClient.put<HTTPSuccessResponse>(`${this.configuration.basePath}/firmwareUpdate`,
+        return this.httpClient.put<HTTPSuccessResponse>(`${this.configuration.basePath}/firmware_update`,
             null,
             {
                 withCredentials: this.configuration.withCredentials,
@@ -322,7 +418,7 @@ export class DefaultService {
     /**
      * 
      * Generate addresses for the hardware wallet seed.
-     * @param generateAddressesRequest GenerateAddressesRequest is request data for /api/generateAddresses
+     * @param generateAddressesRequest GenerateAddressesRequest is request data for /api/v1/generate_addresses
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -332,6 +428,11 @@ export class DefaultService {
     public generateAddressesPost(generateAddressesRequest?: GenerateAddressesRequest, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -351,7 +452,7 @@ export class DefaultService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        return this.httpClient.post<GenerateAddressesResponse>(`${this.configuration.basePath}/generateAddresses`,
+        return this.httpClient.post<GenerateAddressesResponse>(`${this.configuration.basePath}/generate_addresses`,
             generateAddressesRequest,
             {
                 withCredentials: this.configuration.withCredentials,
@@ -365,20 +466,21 @@ export class DefaultService {
     /**
      * 
      * Generate mnemonic can be used to initialize the device with a random seed.
-     * @param wordCount mnemonic seed length
-     * @param usePassphrase ask for passphrase before starting operation
+     * @param generateMnemonicRequest GenerateMnemonicRequest is request data for /api/v1/generate_mnemonic
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public generateMnemonicPost(wordCount: number, usePassphrase?: boolean, observe?: 'body', reportProgress?: boolean): Observable<HTTPSuccessResponse>;
-    public generateMnemonicPost(wordCount: number, usePassphrase?: boolean, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<HTTPSuccessResponse>>;
-    public generateMnemonicPost(wordCount: number, usePassphrase?: boolean, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<HTTPSuccessResponse>>;
-    public generateMnemonicPost(wordCount: number, usePassphrase?: boolean, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
-        if (wordCount === null || wordCount === undefined) {
-            throw new Error('Required parameter wordCount was null or undefined when calling generateMnemonicPost.');
-        }
+    public generateMnemonicPost(generateMnemonicRequest?: GenerateMnemonicRequest, observe?: 'body', reportProgress?: boolean): Observable<HTTPSuccessResponse>;
+    public generateMnemonicPost(generateMnemonicRequest?: GenerateMnemonicRequest, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<HTTPSuccessResponse>>;
+    public generateMnemonicPost(generateMnemonicRequest?: GenerateMnemonicRequest, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<HTTPSuccessResponse>>;
+    public generateMnemonicPost(generateMnemonicRequest?: GenerateMnemonicRequest, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -391,29 +493,15 @@ export class DefaultService {
 
         // to determine the Content-Type header
         const consumes: string[] = [
-            'application/x-www-form-urlencoded'
+            'application/json'
         ];
-
-        const canConsumeForm = this.canConsumeForm(consumes);
-
-        let formParams: { append(param: string, value: any): any; };
-        let useForm = false;
-        let convertFormParamsToString = false;
-        if (useForm) {
-            formParams = new FormData();
-        } else {
-            formParams = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        if (wordCount !== undefined) {
-            formParams = formParams.append('word-count', <any>wordCount) || formParams;
-        }
-        if (usePassphrase !== undefined) {
-            formParams = formParams.append('use-passphrase', <any>usePassphrase) || formParams;
-        }
-
-        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/generateMnemonic`,
-            convertFormParamsToString ? formParams.toString() : formParams,
+        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/generate_mnemonic`,
+            generateMnemonicRequest,
             {
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -426,16 +514,21 @@ export class DefaultService {
     /**
      * 
      * passphrase ack request.
-     * @param pinMatrixRequest PassPhraseRequest is request data for /api/v1/intermediate/passPhrase
+     * @param passphraseRequest PassPhraseRequest is request data for /api/v1/intermediate/passphrase
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public intermediatePassPhrasePost(pinMatrixRequest?: PinMatrixRequest, observe?: 'body', reportProgress?: boolean): Observable<HTTPSuccessResponse>;
-    public intermediatePassPhrasePost(pinMatrixRequest?: PinMatrixRequest, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<HTTPSuccessResponse>>;
-    public intermediatePassPhrasePost(pinMatrixRequest?: PinMatrixRequest, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<HTTPSuccessResponse>>;
-    public intermediatePassPhrasePost(pinMatrixRequest?: PinMatrixRequest, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+    public intermediatePassphrasePost(passphraseRequest?: PassphraseRequest, observe?: 'body', reportProgress?: boolean): Observable<HTTPSuccessResponse>;
+    public intermediatePassphrasePost(passphraseRequest?: PassphraseRequest, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<HTTPSuccessResponse>>;
+    public intermediatePassphrasePost(passphraseRequest?: PassphraseRequest, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<HTTPSuccessResponse>>;
+    public intermediatePassphrasePost(passphraseRequest?: PassphraseRequest, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -455,8 +548,8 @@ export class DefaultService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/intermediate/passPhrase`,
-            pinMatrixRequest,
+        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/intermediate/passphrase`,
+            passphraseRequest,
             {
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -469,7 +562,7 @@ export class DefaultService {
     /**
      * 
      * pin matrix ack request.
-     * @param pinMatrixRequest PinMatrixRequest is request data for /api/v1/intermediate/pinMatrix
+     * @param pinMatrixRequest PinMatrixRequest is request data for /api/v1/intermediate/pin_matrix
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -479,6 +572,11 @@ export class DefaultService {
     public intermediatePinMatrixPost(pinMatrixRequest?: PinMatrixRequest, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -498,7 +596,7 @@ export class DefaultService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/intermediate/pinMatrix`,
+        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/intermediate/pin_matrix`,
             pinMatrixRequest,
             {
                 withCredentials: this.configuration.withCredentials,
@@ -522,6 +620,11 @@ export class DefaultService {
     public intermediateWordPost(wordRequest?: WordRequest, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -555,21 +658,21 @@ export class DefaultService {
     /**
      * 
      * Recover existing wallet using seed.
-     * @param wordCount mnemonic seed length
-     * @param usePassphrase ask for passphrase before starting operation
-     * @param dryRun perform dry-run recovery workflow (for safe mnemonic validation)
+     * @param recoveryRequest RecoveryRequest is request data for /api/v1/check_message_signature
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public recoveryPost(wordCount: number, usePassphrase?: boolean, dryRun?: boolean, observe?: 'body', reportProgress?: boolean): Observable<HTTPSuccessResponse>;
-    public recoveryPost(wordCount: number, usePassphrase?: boolean, dryRun?: boolean, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<HTTPSuccessResponse>>;
-    public recoveryPost(wordCount: number, usePassphrase?: boolean, dryRun?: boolean, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<HTTPSuccessResponse>>;
-    public recoveryPost(wordCount: number, usePassphrase?: boolean, dryRun?: boolean, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
-        if (wordCount === null || wordCount === undefined) {
-            throw new Error('Required parameter wordCount was null or undefined when calling recoveryPost.');
-        }
+    public recoveryPost(recoveryRequest?: RecoveryRequest, observe?: 'body', reportProgress?: boolean): Observable<HTTPSuccessResponse>;
+    public recoveryPost(recoveryRequest?: RecoveryRequest, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<HTTPSuccessResponse>>;
+    public recoveryPost(recoveryRequest?: RecoveryRequest, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<HTTPSuccessResponse>>;
+    public recoveryPost(recoveryRequest?: RecoveryRequest, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -582,32 +685,15 @@ export class DefaultService {
 
         // to determine the Content-Type header
         const consumes: string[] = [
-            'application/x-www-form-urlencoded'
+            'application/json'
         ];
-
-        const canConsumeForm = this.canConsumeForm(consumes);
-
-        let formParams: { append(param: string, value: any): any; };
-        let useForm = false;
-        let convertFormParamsToString = false;
-        if (useForm) {
-            formParams = new FormData();
-        } else {
-            formParams = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
-        }
-
-        if (wordCount !== undefined) {
-            formParams = formParams.append('word-count', <any>wordCount) || formParams;
-        }
-        if (usePassphrase !== undefined) {
-            formParams = formParams.append('use-passphrase', <any>usePassphrase) || formParams;
-        }
-        if (dryRun !== undefined) {
-            formParams = formParams.append('dry-run', <any>dryRun) || formParams;
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
         return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/recovery`,
-            convertFormParamsToString ? formParams.toString() : formParams,
+            recoveryRequest,
             {
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -620,19 +706,21 @@ export class DefaultService {
     /**
      * 
      * Set mnemonic can be used to initialize the device with your own seed.
-     * @param mnemonic bip39 mnemonic seed
+     * @param setMnemonicRequest SetMnemonicRequest is request data for /api/v1/set_mnemonic
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public setMnemonicPost(mnemonic: string, observe?: 'body', reportProgress?: boolean): Observable<HTTPSuccessResponse>;
-    public setMnemonicPost(mnemonic: string, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<HTTPSuccessResponse>>;
-    public setMnemonicPost(mnemonic: string, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<HTTPSuccessResponse>>;
-    public setMnemonicPost(mnemonic: string, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
-        if (mnemonic === null || mnemonic === undefined) {
-            throw new Error('Required parameter mnemonic was null or undefined when calling setMnemonicPost.');
-        }
+    public setMnemonicPost(setMnemonicRequest?: SetMnemonicRequest, observe?: 'body', reportProgress?: boolean): Observable<HTTPSuccessResponse>;
+    public setMnemonicPost(setMnemonicRequest?: SetMnemonicRequest, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<HTTPSuccessResponse>>;
+    public setMnemonicPost(setMnemonicRequest?: SetMnemonicRequest, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<HTTPSuccessResponse>>;
+    public setMnemonicPost(setMnemonicRequest?: SetMnemonicRequest, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
@@ -645,26 +733,15 @@ export class DefaultService {
 
         // to determine the Content-Type header
         const consumes: string[] = [
-            'application/x-www-form-urlencoded'
+            'application/json'
         ];
-
-        const canConsumeForm = this.canConsumeForm(consumes);
-
-        let formParams: { append(param: string, value: any): any; };
-        let useForm = false;
-        let convertFormParamsToString = false;
-        if (useForm) {
-            formParams = new FormData();
-        } else {
-            formParams = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        if (mnemonic !== undefined) {
-            formParams = formParams.append('mnemonic', <any>mnemonic) || formParams;
-        }
-
-        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/setMnemonic`,
-            convertFormParamsToString ? formParams.toString() : formParams,
+        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/set_mnemonic`,
+            setMnemonicRequest,
             {
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -687,6 +764,11 @@ export class DefaultService {
 
         let headers = this.defaultHeaders;
 
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
+
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
             'application/json'
@@ -700,7 +782,7 @@ export class DefaultService {
         const consumes: string[] = [
         ];
 
-        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/setPinCode`,
+        return this.httpClient.post<HTTPSuccessResponse>(`${this.configuration.basePath}/set_pin_code`,
             null,
             {
                 withCredentials: this.configuration.withCredentials,
@@ -725,6 +807,11 @@ export class DefaultService {
 
         let headers = this.defaultHeaders;
 
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
+
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
             'application/json'
@@ -743,7 +830,7 @@ export class DefaultService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        return this.httpClient.post<SignMessageResponse>(`${this.configuration.basePath}/signMessage`,
+        return this.httpClient.post<SignMessageResponse>(`${this.configuration.basePath}/sign_message`,
             signMessageRequest,
             {
                 withCredentials: this.configuration.withCredentials,
@@ -768,6 +855,11 @@ export class DefaultService {
 
         let headers = this.defaultHeaders;
 
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
+
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [
             'application/json'
@@ -786,7 +878,7 @@ export class DefaultService {
             headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 
-        return this.httpClient.post<TransactionSignResponse>(`${this.configuration.basePath}/transactionSign`,
+        return this.httpClient.post<TransactionSignResponse>(`${this.configuration.basePath}/transaction_sign`,
             transactionSignRequest,
             {
                 withCredentials: this.configuration.withCredentials,
@@ -809,6 +901,11 @@ export class DefaultService {
     public wipeDelete(observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (csrfAuth) required
+        if (this.configuration.apiKeys["X-CSRF-TOKEN"]) {
+            headers = headers.set('X-CSRF-TOKEN', this.configuration.apiKeys["X-CSRF-TOKEN"]);
+        }
 
         // to determine the Accept header
         let httpHeaderAccepts: string[] = [

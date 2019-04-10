@@ -11,6 +11,8 @@
  */
 
 
-export interface SignMessageResponse { 
-    data?: string;
+export interface RecoveryRequest { 
+    wordCount: number;
+    usePassphrase?: boolean;
+    dryRun?: boolean;
 }

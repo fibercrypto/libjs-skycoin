@@ -11,6 +11,6 @@
  */
 
 
-export interface SignMessageResponse { 
-    data?: string;
+export interface SetMnemonicRequest { 
+    mnemonic: string;
 }
