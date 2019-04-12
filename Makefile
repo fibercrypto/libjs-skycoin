@@ -3,11 +3,11 @@
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	
-install: build-axios-client build-axios-tester ## Build libraries and tester
-	echo 'Done building libraries and tester.'
+install: build-axios-client build-axios-tester ; ## Build libraries and tester
 
-test: test-axios-client ## Test all clients
-	echo 'Done testing clients.'
+
+test: test-axios-client ; ## Test all clients
+
 	
 test-axios-client: ## Test axios client
 	(cd ./tests/axios/ && npm run test )

@@ -20,7 +20,6 @@ describe('#axiosClient', function() {
                 expect(result.data).to.have.property('version');
                 expect(result.data).to.have.property('commit');
                 expect(result.data).to.have.property('branch');
-                done();
             });
         });
     });
@@ -36,7 +35,6 @@ describe('#axiosClient', function() {
                 expect(result.data).to.have.property('version');
                 expect(result.data).to.have.property('commit');
                 expect(result.data).to.have.property('branch');
-                done();
             });
         });
     });
