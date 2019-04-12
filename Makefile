@@ -17,4 +17,4 @@ build-axios-tester: ## Build tester
 	(cd ./tests/axios/ && npm install)
 
 build-node-client: ## Build node client
-	(cd './dev/lib/skyapi/typescript-node/' && npm install && npm run build)
+	(cd './lib/skyapi/node/' && npm install && npm run build)
