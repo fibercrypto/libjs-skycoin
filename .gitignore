@@ -1,3 +1,6 @@
 .idea/
 .directory
-dev/tester/node_modules
+/lib/skyapi/axios/node_modules
+/tests/axios/node_modules
+/lib/skyapi/node/node_modules
+/tests/node/node_modules
