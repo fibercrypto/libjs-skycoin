@@ -9,6 +9,8 @@ var expect = require('chai').expect;
 
 describe('#axiosClient', function() {
 
+    this.timeout(10000);
+
     context(`Getting version from ${developBasePath}.`, function() {
         it('Should return version object', function() {
             let apiConfig = new axiosClient.Configuration();

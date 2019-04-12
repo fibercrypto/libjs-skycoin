@@ -9,6 +9,8 @@ var expect = require('chai').expect;
 
 describe('#nodeClient', function() {
 
+    this.timeout(10000);
+
     context(`Getting version from ${developBasePath}.`, function() {
         it('Should return version object', function() {
             let api = new nodeClient.DefaultApi(developBasePath);
