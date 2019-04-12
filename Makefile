@@ -3,7 +3,7 @@
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	
-install: build-axios-client build-axios-tester build-node-client build-node-tester ; ## Build all libraries and tester
+install: build-axios-client build-node-client build-axios-tester build-node-tester ; ## Build all libraries and tester
 
 test: test-axios-client test-node-client ; ## Test all clients
 	
@@ -24,12 +24,9 @@ build-node-client: ## Build node client
 
 build-node-tester: ## Build node client tester
 	(cd './tests/node/' && npm install)
-
-build_tester:
-	(cd './dev/tester/' && npm run setup)
 	
-docker_build:
+docker_build: ## Build docker image skyapi/typescript
 	docker build -t skyapi/typescript -f ./docker/Dockerfile .
 
-docker_run:
+docker_run: ## Run docker image skyapi/typescript with name skyapi-typescript
 	docker run -v ${PWD}/tests:/skyapi-typescript/tests -it --name=skyapi-typescript skyapi/typescript
