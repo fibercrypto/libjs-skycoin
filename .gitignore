@@ -1,6 +1,5 @@
 .idea/
 .directory
-/lib/skyapi/axios/node_modules
-/tests/axios/node_modules
-/lib/skyapi/node/node_modules
-/tests/node/node_modules
+tester/node_modules
+tests/axios/node_modules
+tests/node/node_modules

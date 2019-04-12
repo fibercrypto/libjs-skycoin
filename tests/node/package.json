@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "libsky-node": "file:../../lib/skyapi/node",
+    "mocha": "^6.1.3"
+  }
+}

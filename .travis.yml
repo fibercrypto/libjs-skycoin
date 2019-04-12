@@ -1,11 +1,10 @@
-language: nodejs
+language: node_js
+
+node_js:
+  - "10.15.1"
 
 before_script:
-- make build_axios_client
-- make build_node_client
-- make build_tester
+- make install
 
 script:
-- make test_clients
-
-
+- make test
