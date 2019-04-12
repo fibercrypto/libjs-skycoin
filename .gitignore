@@ -1,3 +1,4 @@
 .idea/
 .directory
-dev/tester/node_modules
+tester/node_modules
+tests/axios/node_modules
