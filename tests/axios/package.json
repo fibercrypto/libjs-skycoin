@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "libsky-axios": "file:../../lib/skyapi/axios"
+  }
+}

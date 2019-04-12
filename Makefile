@@ -3,17 +3,17 @@
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	
-install: build_axios_client build_tester ## Build libraries and tester
+install: build-axios-client build-axios-tester ## Build libraries and tester
 	echo 'Done building libraries and tester.'
 
-test: test_axios_client ## Test all clients
+test: test-axios-client ## Test all clients
 	echo 'Done testing clients.'
 	
-test_axios_client: ## Test axios client
-	(cd ./tester/ && npm run test )
+test-axios-client: ## Test axios client
+	(cd ./tests/axios/ && npm run test )
 
-build_axios_client: ## Build axios client
+build-axios-client: ## Build axios client
 	(cd ./lib/skyapi/axios/ && npm install && npm run build)
 
-build_tester: ##Build tester
-	(cd ./tester/ && npm run setup)
+build-axios-tester: ## Build tester
+	(cd ./tests/axios/ && npm install)
