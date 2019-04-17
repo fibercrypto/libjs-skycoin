@@ -9,6 +9,9 @@ install: build-node-client build-node-tester ; ## Build all libraries and tester
 test: test-node-client ; ## Test all clients
 
 test-node-client: ## Test node client
+	export HOST='https://staging.node.skycoin.net' && \
+	(cd ./tests/node/ && npm run test ) && \
+	export HOST='https://node.skycoin.net' && \
 	(cd ./tests/node/ && npm run test )
 
 build-node-client: ## Build node client
