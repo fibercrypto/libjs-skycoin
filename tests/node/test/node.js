@@ -5,10 +5,14 @@ const config = require('../../config');
 let nodeClient = require('libsky-node');
 var expect = require('chai').expect;
 
+const instantiateAPI = function (path) {
+    return new nodeClient.DefaultApi(path);
+};
+
 const checkVersion = function (path) {
     context(`Getting version from ${path}.`, function() {
         it('Should return version object', function() {
-            let api = new nodeClient.DefaultApi(path);
+            let api = instantiateAPI(path);
             return api.version().then(result => {
                 expect(result).to.be.a('object');
                 expect(result).to.have.property('body');
