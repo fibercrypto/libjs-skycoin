@@ -11,6 +11,9 @@ test: test-axios-client ; ## Test all clients
 
 	
 test-axios-client: ## Test axios client
+	export HOST='https://staging.node.skycoin.net' && \
+	(cd ./tests/axios/ && npm run test ) && \
+	export HOST='https://node.skycoin.net' && \
 	(cd ./tests/axios/ && npm run test )
 
 build-axios-client: ## Build axios client
