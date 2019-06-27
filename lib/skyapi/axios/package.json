@@ -13,16 +13,17 @@
   "license": "Unlicense",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
-  "scripts": {
+  "scripts" : {
     "build": "tsc --outDir dist/",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "axios": "^0.18.0"
   },
-  "peerDependencies": {},
+  "peerDependencies": {    
+  },
   "devDependencies": {
     "@types/node": "^8.0.9",
-    "typescript": "^2.4"
+    "typescript": "^2.4" 
   }
 }
