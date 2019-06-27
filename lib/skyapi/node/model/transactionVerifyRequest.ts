@@ -11,26 +11,26 @@
  */
 
 
-export class InlineResponseDefault {
-    'code'?: number;
-    'message'?: string;
+export class TransactionVerifyRequest {
+    'unsigned'?: boolean;
+    'encodedTransaction'?: string;
 
     static discriminator: string | undefined = undefined;
 
     static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
-            "name": "code",
-            "baseName": "code",
-            "type": "number"
+            "name": "unsigned",
+            "baseName": "unsigned",
+            "type": "boolean"
         },
         {
-            "name": "message",
-            "baseName": "message",
+            "name": "encodedTransaction",
+            "baseName": "encoded_transaction",
             "type": "string"
         }    ];
 
     static getAttributeTypeMap() {
-        return InlineResponseDefault.attributeTypeMap;
+        return TransactionVerifyRequest.attributeTypeMap;
     }
 }
 

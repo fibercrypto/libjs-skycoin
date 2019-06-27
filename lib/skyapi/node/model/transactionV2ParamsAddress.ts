@@ -10,27 +10,22 @@
  * Do not edit the class manually.
  */
 
+import { TransactionV2ParamsAddressHoursSelection } from './transactionV2ParamsAddressHoursSelection';
 
-export class InlineResponseDefault {
-    'code'?: number;
-    'message'?: string;
+export class TransactionV2ParamsAddress {
+    'hoursSelection'?: TransactionV2ParamsAddressHoursSelection;
 
     static discriminator: string | undefined = undefined;
 
     static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
-            "name": "code",
-            "baseName": "code",
-            "type": "number"
-        },
-        {
-            "name": "message",
-            "baseName": "message",
-            "type": "string"
+            "name": "hoursSelection",
+            "baseName": "hours_selection",
+            "type": "TransactionV2ParamsAddressHoursSelection"
         }    ];
 
     static getAttributeTypeMap() {
-        return InlineResponseDefault.attributeTypeMap;
+        return TransactionV2ParamsAddress.attributeTypeMap;
     }
 }
 

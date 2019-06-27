@@ -11,26 +11,20 @@
  */
 
 
-export class InlineResponseDefault {
-    'code'?: number;
-    'message'?: string;
+export class Address {
+    'address': string;
 
     static discriminator: string | undefined = undefined;
 
     static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
-            "name": "code",
-            "baseName": "code",
-            "type": "number"
-        },
-        {
-            "name": "message",
-            "baseName": "message",
+            "name": "address",
+            "baseName": "address",
             "type": "string"
         }    ];
 
     static getAttributeTypeMap() {
-        return InlineResponseDefault.attributeTypeMap;
+        return Address.attributeTypeMap;
     }
 }
 

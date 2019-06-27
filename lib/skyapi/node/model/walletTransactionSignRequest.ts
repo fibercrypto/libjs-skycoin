@@ -11,41 +11,38 @@
  */
 
 
-export class InlineResponse2005 {
-    /**
-    * git branch name
-    */
-    'branch'?: string;
-    /**
-    * git commit id
-    */
-    'commit'?: string;
-    /**
-    * version number
-    */
-    'version'?: string;
+export class WalletTransactionSignRequest {
+    'walletId'?: string;
+    'password'?: string;
+    'encodedTransaction'?: string;
+    'signIndexes'?: Array<number>;
 
     static discriminator: string | undefined = undefined;
 
     static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
-            "name": "branch",
-            "baseName": "branch",
+            "name": "walletId",
+            "baseName": "wallet_id",
             "type": "string"
         },
         {
-            "name": "commit",
-            "baseName": "commit",
+            "name": "password",
+            "baseName": "password",
             "type": "string"
         },
         {
-            "name": "version",
-            "baseName": "version",
+            "name": "encodedTransaction",
+            "baseName": "encoded_transaction",
             "type": "string"
+        },
+        {
+            "name": "signIndexes",
+            "baseName": "sign_indexes",
+            "type": "Array<number>"
         }    ];
 
     static getAttributeTypeMap() {
-        return InlineResponse2005.attributeTypeMap;
+        return WalletTransactionSignRequest.attributeTypeMap;
     }
 }
 

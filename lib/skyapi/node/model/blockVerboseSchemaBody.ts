@@ -11,26 +11,20 @@
  */
 
 
-export class InlineResponseDefault {
-    'code'?: number;
-    'message'?: string;
+export class BlockVerboseSchemaBody {
+    'txns'?: Array<any>;
 
     static discriminator: string | undefined = undefined;
 
     static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
-            "name": "code",
-            "baseName": "code",
-            "type": "number"
-        },
-        {
-            "name": "message",
-            "baseName": "message",
-            "type": "string"
+            "name": "txns",
+            "baseName": "txns",
+            "type": "Array<any>"
         }    ];
 
     static getAttributeTypeMap() {
-        return InlineResponseDefault.attributeTypeMap;
+        return BlockVerboseSchemaBody.attributeTypeMap;
     }
 }
 

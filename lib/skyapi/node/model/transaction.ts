@@ -10,42 +10,35 @@
  * Do not edit the class manually.
  */
 
+import { TransactionStatus } from './transactionStatus';
+import { TransactionTxn } from './transactionTxn';
 
-export class InlineResponse2005 {
-    /**
-    * git branch name
-    */
-    'branch'?: string;
-    /**
-    * git commit id
-    */
-    'commit'?: string;
-    /**
-    * version number
-    */
-    'version'?: string;
+export class Transaction {
+    'status'?: TransactionStatus;
+    'txn'?: TransactionTxn;
+    'time'?: number;
 
     static discriminator: string | undefined = undefined;
 
     static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
-            "name": "branch",
-            "baseName": "branch",
-            "type": "string"
+            "name": "status",
+            "baseName": "status",
+            "type": "TransactionStatus"
         },
         {
-            "name": "commit",
-            "baseName": "commit",
-            "type": "string"
+            "name": "txn",
+            "baseName": "txn",
+            "type": "TransactionTxn"
         },
         {
-            "name": "version",
-            "baseName": "version",
-            "type": "string"
+            "name": "time",
+            "baseName": "time",
+            "type": "number"
         }    ];
 
     static getAttributeTypeMap() {
-        return InlineResponse2005.attributeTypeMap;
+        return Transaction.attributeTypeMap;
     }
 }
 

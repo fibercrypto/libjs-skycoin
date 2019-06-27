@@ -10,27 +10,34 @@
  * Do not edit the class manually.
  */
 
+import { TransactionStatus } from './transactionStatus';
 
-export class InlineResponseDefault {
-    'code'?: number;
-    'message'?: string;
+export class TransactionEncodedS {
+    'time'?: number;
+    'status'?: TransactionStatus;
+    'encodedTransaction'?: string;
 
     static discriminator: string | undefined = undefined;
 
     static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
-            "name": "code",
-            "baseName": "code",
+            "name": "time",
+            "baseName": "time",
             "type": "number"
         },
         {
-            "name": "message",
-            "baseName": "message",
+            "name": "status",
+            "baseName": "status",
+            "type": "TransactionStatus"
+        },
+        {
+            "name": "encodedTransaction",
+            "baseName": "encoded_transaction",
             "type": "string"
         }    ];
 
     static getAttributeTypeMap() {
-        return InlineResponseDefault.attributeTypeMap;
+        return TransactionEncodedS.attributeTypeMap;
     }
 }
 

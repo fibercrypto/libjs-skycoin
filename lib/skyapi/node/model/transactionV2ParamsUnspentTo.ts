@@ -11,26 +11,26 @@
  */
 
 
-export class InlineResponseDefault {
-    'code'?: number;
-    'message'?: string;
+export class TransactionV2ParamsUnspentTo {
+    'address'?: string;
+    'coins'?: string;
 
     static discriminator: string | undefined = undefined;
 
     static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
-            "name": "code",
-            "baseName": "code",
-            "type": "number"
+            "name": "address",
+            "baseName": "address",
+            "type": "string"
         },
         {
-            "name": "message",
-            "baseName": "message",
+            "name": "coins",
+            "baseName": "coins",
             "type": "string"
         }    ];
 
     static getAttributeTypeMap() {
-        return InlineResponseDefault.attributeTypeMap;
+        return TransactionV2ParamsUnspentTo.attributeTypeMap;
     }
 }
 

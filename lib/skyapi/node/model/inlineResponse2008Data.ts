@@ -10,27 +10,22 @@
  * Do not edit the class manually.
  */
 
+import { Transaction } from './transaction';
 
-export class InlineResponseDefault {
-    'code'?: number;
-    'message'?: string;
+export class InlineResponse2008Data {
+    'transaction'?: Transaction;
 
     static discriminator: string | undefined = undefined;
 
     static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
-            "name": "code",
-            "baseName": "code",
-            "type": "number"
-        },
-        {
-            "name": "message",
-            "baseName": "message",
-            "type": "string"
+            "name": "transaction",
+            "baseName": "transaction",
+            "type": "Transaction"
         }    ];
 
     static getAttributeTypeMap() {
-        return InlineResponseDefault.attributeTypeMap;
+        return InlineResponse2008Data.attributeTypeMap;
     }
 }
 

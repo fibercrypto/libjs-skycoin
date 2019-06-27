@@ -11,26 +11,20 @@
  */
 
 
-export class InlineResponseDefault {
-    'code'?: number;
-    'message'?: string;
+export class InlineResponse2009 {
+    'data'?: any;
 
     static discriminator: string | undefined = undefined;
 
     static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
-            "name": "code",
-            "baseName": "code",
-            "type": "number"
-        },
-        {
-            "name": "message",
-            "baseName": "message",
-            "type": "string"
+            "name": "data",
+            "baseName": "data",
+            "type": "any"
         }    ];
 
     static getAttributeTypeMap() {
-        return InlineResponseDefault.attributeTypeMap;
+        return InlineResponse2009.attributeTypeMap;
     }
 }
 

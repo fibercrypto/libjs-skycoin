@@ -1,48 +1,88 @@
-export * from './apiV1ExplorerAddressInputs';
-export * from './apiV1ExplorerAddressOutputs';
-export * from './apiV1ExplorerAddressStatus';
+export * from './address';
 export * from './apiV1PendingTxsTransaction';
-export * from './apiV1WalletTransactionHoursSelection';
-export * from './apiV1WalletTransactionTo';
-export * from './apiV1WalletTransactionWallet';
-export * from './apiV1WalletsEntries';
-export * from './apiV1WalletsMeta';
-export * from './inlineObject';
+export * from './apiV1PendingTxsTransactionOutputs';
+export * from './blockSchema';
+export * from './blockSchemaBody';
+export * from './blockVerboseSchema';
+export * from './blockVerboseSchemaBody';
+export * from './blockVerboseSchemaHeader';
 export * from './inlineResponse200';
 export * from './inlineResponse2001';
+export * from './inlineResponse20010';
 export * from './inlineResponse2002';
 export * from './inlineResponse2003';
-export * from './inlineResponse2003UnconfirmedVerifyTransaction';
 export * from './inlineResponse2004';
 export * from './inlineResponse2005';
 export * from './inlineResponse2006';
 export * from './inlineResponse2007';
-export * from './inlineResponse2007Data';
+export * from './inlineResponse2008';
+export * from './inlineResponse2008Data';
+export * from './inlineResponse2009';
 export * from './inlineResponseDefault';
+export * from './networkConnectionSchema';
+export * from './networkConnectionSchemaUnconfirmedVerifyTransaction';
+export * from './transaction';
+export * from './transactionEncoded';
+export * from './transactionEncodedS';
+export * from './transactionStatus';
+export * from './transactionTxn';
+export * from './transactionV2ParamsAddress';
+export * from './transactionV2ParamsAddressHoursSelection';
+export * from './transactionV2ParamsUnspent';
+export * from './transactionV2ParamsUnspentHoursSelection';
+export * from './transactionV2ParamsUnspentTo';
+export * from './transactionVerbose';
+export * from './transactionVerboseTxn';
+export * from './transactionVerboseTxnInputs';
+export * from './transactionVerifyRequest';
+export * from './walletTransactionRequest';
+export * from './walletTransactionRequestHoursSelection';
+export * from './walletTransactionRequestWallet';
+export * from './walletTransactionSignRequest';
 
 import localVarRequest = require('request');
 
-import { ApiV1ExplorerAddressInputs } from './apiV1ExplorerAddressInputs';
-import { ApiV1ExplorerAddressOutputs } from './apiV1ExplorerAddressOutputs';
-import { ApiV1ExplorerAddressStatus } from './apiV1ExplorerAddressStatus';
+import { Address } from './address';
 import { ApiV1PendingTxsTransaction } from './apiV1PendingTxsTransaction';
-import { ApiV1WalletTransactionHoursSelection } from './apiV1WalletTransactionHoursSelection';
-import { ApiV1WalletTransactionTo } from './apiV1WalletTransactionTo';
-import { ApiV1WalletTransactionWallet } from './apiV1WalletTransactionWallet';
-import { ApiV1WalletsEntries } from './apiV1WalletsEntries';
-import { ApiV1WalletsMeta } from './apiV1WalletsMeta';
-import { InlineObject } from './inlineObject';
+import { ApiV1PendingTxsTransactionOutputs } from './apiV1PendingTxsTransactionOutputs';
+import { BlockSchema } from './blockSchema';
+import { BlockSchemaBody } from './blockSchemaBody';
+import { BlockVerboseSchema } from './blockVerboseSchema';
+import { BlockVerboseSchemaBody } from './blockVerboseSchemaBody';
+import { BlockVerboseSchemaHeader } from './blockVerboseSchemaHeader';
 import { InlineResponse200 } from './inlineResponse200';
 import { InlineResponse2001 } from './inlineResponse2001';
+import { InlineResponse20010 } from './inlineResponse20010';
 import { InlineResponse2002 } from './inlineResponse2002';
 import { InlineResponse2003 } from './inlineResponse2003';
-import { InlineResponse2003UnconfirmedVerifyTransaction } from './inlineResponse2003UnconfirmedVerifyTransaction';
 import { InlineResponse2004 } from './inlineResponse2004';
 import { InlineResponse2005 } from './inlineResponse2005';
 import { InlineResponse2006 } from './inlineResponse2006';
 import { InlineResponse2007 } from './inlineResponse2007';
-import { InlineResponse2007Data } from './inlineResponse2007Data';
+import { InlineResponse2008 } from './inlineResponse2008';
+import { InlineResponse2008Data } from './inlineResponse2008Data';
+import { InlineResponse2009 } from './inlineResponse2009';
 import { InlineResponseDefault } from './inlineResponseDefault';
+import { NetworkConnectionSchema } from './networkConnectionSchema';
+import { NetworkConnectionSchemaUnconfirmedVerifyTransaction } from './networkConnectionSchemaUnconfirmedVerifyTransaction';
+import { Transaction } from './transaction';
+import { TransactionEncoded } from './transactionEncoded';
+import { TransactionEncodedS } from './transactionEncodedS';
+import { TransactionStatus } from './transactionStatus';
+import { TransactionTxn } from './transactionTxn';
+import { TransactionV2ParamsAddress } from './transactionV2ParamsAddress';
+import { TransactionV2ParamsAddressHoursSelection } from './transactionV2ParamsAddressHoursSelection';
+import { TransactionV2ParamsUnspent } from './transactionV2ParamsUnspent';
+import { TransactionV2ParamsUnspentHoursSelection } from './transactionV2ParamsUnspentHoursSelection';
+import { TransactionV2ParamsUnspentTo } from './transactionV2ParamsUnspentTo';
+import { TransactionVerbose } from './transactionVerbose';
+import { TransactionVerboseTxn } from './transactionVerboseTxn';
+import { TransactionVerboseTxnInputs } from './transactionVerboseTxnInputs';
+import { TransactionVerifyRequest } from './transactionVerifyRequest';
+import { WalletTransactionRequest } from './walletTransactionRequest';
+import { WalletTransactionRequestHoursSelection } from './walletTransactionRequestHoursSelection';
+import { WalletTransactionRequestWallet } from './walletTransactionRequestWallet';
+import { WalletTransactionSignRequest } from './walletTransactionSignRequest';
 
 /* tslint:disable:no-unused-variable */
 let primitives = [
@@ -57,31 +97,51 @@ let primitives = [
                  ];
                  
 let enumsMap: {[index: string]: any} = {
-        "InlineResponse2003.StateEnum": InlineResponse2003.StateEnum,
+        "NetworkConnectionSchema.StateEnum": NetworkConnectionSchema.StateEnum,
 }
 
 let typeMap: {[index: string]: any} = {
-    "ApiV1ExplorerAddressInputs": ApiV1ExplorerAddressInputs,
-    "ApiV1ExplorerAddressOutputs": ApiV1ExplorerAddressOutputs,
-    "ApiV1ExplorerAddressStatus": ApiV1ExplorerAddressStatus,
+    "Address": Address,
     "ApiV1PendingTxsTransaction": ApiV1PendingTxsTransaction,
-    "ApiV1WalletTransactionHoursSelection": ApiV1WalletTransactionHoursSelection,
-    "ApiV1WalletTransactionTo": ApiV1WalletTransactionTo,
-    "ApiV1WalletTransactionWallet": ApiV1WalletTransactionWallet,
-    "ApiV1WalletsEntries": ApiV1WalletsEntries,
-    "ApiV1WalletsMeta": ApiV1WalletsMeta,
-    "InlineObject": InlineObject,
+    "ApiV1PendingTxsTransactionOutputs": ApiV1PendingTxsTransactionOutputs,
+    "BlockSchema": BlockSchema,
+    "BlockSchemaBody": BlockSchemaBody,
+    "BlockVerboseSchema": BlockVerboseSchema,
+    "BlockVerboseSchemaBody": BlockVerboseSchemaBody,
+    "BlockVerboseSchemaHeader": BlockVerboseSchemaHeader,
     "InlineResponse200": InlineResponse200,
     "InlineResponse2001": InlineResponse2001,
+    "InlineResponse20010": InlineResponse20010,
     "InlineResponse2002": InlineResponse2002,
     "InlineResponse2003": InlineResponse2003,
-    "InlineResponse2003UnconfirmedVerifyTransaction": InlineResponse2003UnconfirmedVerifyTransaction,
     "InlineResponse2004": InlineResponse2004,
     "InlineResponse2005": InlineResponse2005,
     "InlineResponse2006": InlineResponse2006,
     "InlineResponse2007": InlineResponse2007,
-    "InlineResponse2007Data": InlineResponse2007Data,
+    "InlineResponse2008": InlineResponse2008,
+    "InlineResponse2008Data": InlineResponse2008Data,
+    "InlineResponse2009": InlineResponse2009,
     "InlineResponseDefault": InlineResponseDefault,
+    "NetworkConnectionSchema": NetworkConnectionSchema,
+    "NetworkConnectionSchemaUnconfirmedVerifyTransaction": NetworkConnectionSchemaUnconfirmedVerifyTransaction,
+    "Transaction": Transaction,
+    "TransactionEncoded": TransactionEncoded,
+    "TransactionEncodedS": TransactionEncodedS,
+    "TransactionStatus": TransactionStatus,
+    "TransactionTxn": TransactionTxn,
+    "TransactionV2ParamsAddress": TransactionV2ParamsAddress,
+    "TransactionV2ParamsAddressHoursSelection": TransactionV2ParamsAddressHoursSelection,
+    "TransactionV2ParamsUnspent": TransactionV2ParamsUnspent,
+    "TransactionV2ParamsUnspentHoursSelection": TransactionV2ParamsUnspentHoursSelection,
+    "TransactionV2ParamsUnspentTo": TransactionV2ParamsUnspentTo,
+    "TransactionVerbose": TransactionVerbose,
+    "TransactionVerboseTxn": TransactionVerboseTxn,
+    "TransactionVerboseTxnInputs": TransactionVerboseTxnInputs,
+    "TransactionVerifyRequest": TransactionVerifyRequest,
+    "WalletTransactionRequest": WalletTransactionRequest,
+    "WalletTransactionRequestHoursSelection": WalletTransactionRequestHoursSelection,
+    "WalletTransactionRequestWallet": WalletTransactionRequestWallet,
+    "WalletTransactionSignRequest": WalletTransactionSignRequest,
 }
 
 export class ObjectSerializer {
