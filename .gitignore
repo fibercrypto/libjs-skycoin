@@ -1,3 +1,6 @@
 .idea/
 .directory
 tests/axios/node_modules
+lib/skycoin/*.c
+lib/skycoin/libskycoin.h
+lib/skycoin/swig.h
