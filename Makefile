@@ -63,7 +63,7 @@ build-libc: configure ## Build libskycoin C client library
 	cp $(SKYLIBC_DIR)/include/swig.h $(JS_SWIG_DIR)
 	grep -v _Complex $(SKYLIBC_DIR)/include/libskycoin.h > $(JS_SWIG_DIR)/libskycoin.h
 
-build-swig: build-libc ## Generate PHP C module from SWIG interfaces
+build-swig: build-libc ## Generate Node C module from SWIG interfaces
 	#Generate structs.i from skytypes.gen.h
 	rm -f $(JS_SWIG_DIR)/structs.i
 	cp $(INCLUDE_DIR)/skytypes.gen.h $(JS_SWIG_DIR)/structs.i
@@ -76,10 +76,13 @@ build-swig: build-libc ## Generate PHP C module from SWIG interfaces
 	}
 	mkdir -p $(JS_SWIG_DIR)
 	rm -rfv $(JS_SWIG_DIR)/libskycoin_wrap.c
-	swig -javascript -node $(JS_INCLUDE) -I$(INCLUDE_DIR) -outdir $(JS_SWIG_DIR) $(JS_SWIG_DIR)/libskycoin.i
+	swig -javascript -node -I$(INCLUDE_DIR) -outdir $(JS_SWIG_DIR) $(JS_SWIG_DIR)/libskycoin.i
 
 build-libsky-shared: build-swig ## Build shared library including SWIG wrappers
-	gcc -fpic -lv8 $(JS_INCLUDE) -I$(JS_SWIG_DIR) -I$(INCLUDE_DIR) -c $(JS_SWIG_DIR)/libskycoin_wrap.c
-	gcc -shared skycoin_wrap.o $(BUILDLIBC_DIR)/libskycoin.a -o $(JS_SWIG_DIR)/libskycoin.so
+	set -ex
+	rm -rfv $(JS_SWIG_DIR)/build
+	(cd $(JS_SWIG_DIR) && node-gyp configure)
+	(cd $(JS_SWIG_DIR) && node-gyp build)
+	# gcc -shared skycoin_wrap.o $(BUILDLIBC_DIR)/libskycoin.a -o $(JS_SWIG_DIR)/libskycoin.so
 
-build: build-libsky-shared ## Install with composer needed libraries
+build: build-libsky-shared ## Build library Node Libskycoin

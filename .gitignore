@@ -4,3 +4,7 @@ tests/axios/node_modules
 lib/skycoin/*.c
 lib/skycoin/libskycoin.h
 lib/skycoin/swig.h
+lib/skycoin/build/config.gypi
+lib/skycoin/build/skycoin.target.mk
+lib/skycoin/build/binding.Makefile
+lib/skycoin/build/Makefile
