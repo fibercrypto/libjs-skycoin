@@ -5,8 +5,9 @@ node_js:
 
 before_script:
 - make install
+- whereis nodejs
 - bash .travis/install-linux.sh
 
 script:
 - make test
-- make build
+# - make build
