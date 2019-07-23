@@ -11,3 +11,7 @@ before_script:
 script:
 - make test
 # - make build
+
+notifications:
+  email: false
+  webhooks: https://fathomless-fjord-24024.herokuapp.com/notify
