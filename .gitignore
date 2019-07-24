@@ -1,3 +1,4 @@
 .idea/
 .directory
 tests/axios/node_modules
+tests/node/node_modules
