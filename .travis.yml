@@ -5,6 +5,13 @@ node_js:
 
 before_script:
 - make install
+- whereis nodejs
+- bash .travis/install-linux.sh
 
 script:
 - make test
+- make build
+
+notifications:
+  email: false
+  webhooks: https://fathomless-fjord-24024.herokuapp.com/notify
