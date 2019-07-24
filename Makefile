@@ -76,13 +76,11 @@ build-swig: build-libc ## Generate Node C module from SWIG interfaces
 	}
 	mkdir -p $(JS_SWIG_DIR)
 	rm -rfv $(JS_SWIG_DIR)/libskycoin_wrap.c
-	swig -javascript -node -I$(INCLUDE_DIR) -outdir $(JS_SWIG_DIR) $(JS_SWIG_DIR)/libskycoin.i
+	swig -javascript  -jsc -I$(INCLUDE_DIR) -outdir $(JS_SWIG_DIR) $(JS_SWIG_DIR)/libskycoin.i 
 
 build-libsky-shared: build-swig ## Build shared library including SWIG wrappers
 	set -ex
 	rm -rfv $(JS_SWIG_DIR)/build
-	(cd $(JS_SWIG_DIR) && node-gyp configure)
-	(cd $(JS_SWIG_DIR) && node-gyp build)
-	# gcc -shared skycoin_wrap.o $(BUILDLIBC_DIR)/libskycoin.a -o $(JS_SWIG_DIR)/libskycoin.so
+	(cd $(JS_SWIG_DIR) && node-gyp configure build --target=v10.15.1 )
 
 build: build-libsky-shared ## Build library Node Libskycoin
