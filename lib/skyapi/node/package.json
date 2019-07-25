@@ -19,6 +19,9 @@
         "@types/request": "*",
         "rewire": "^3.0.2"
     },
+	"publishConfig": {
+    "access": "public"
+    },
     "devDependencies": {
         "typescript": "^2.4.2",
         "@types/node": "8.10.34"
