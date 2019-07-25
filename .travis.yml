@@ -11,7 +11,51 @@ before_script:
 script:
 - make test
 - make build
-
+jobs:
+  include:
+    - stage: Release libsky-axios
+      before_deploy:
+        - cd lib/skyapi/axios
+        - npm install
+      after_deploy:
+        - cd ../../../
+      deploy:
+        provider: npm
+        email: email@email.com
+        skip_cleanup: true
+        api_key:
+          secure: SECURE 
+        on:
+          tags: true
+    - stage: Release lib/skyapi/node 
+      before_deploy:
+        - cd lib/skyapi/node
+        - npm install
+      after_deploy:
+        - cd ../../../
+      deploy:
+        provider: npm
+        email: email@email.com
+        skip_cleanup: true
+        api_key:
+          secure: SECURE
+        on:
+          tags: true
+    - stage: Release libskycion-js
+      before_deploy:
+        - cd lib/skycoin
+        - npm install
+      after_deploy:
+        - cd ../../
+      deploy:
+        provider: npm
+        email: email@email.com
+        skip_cleanup: true
+        api_key:
+          secure: SECURE
+        on:
+          tags: true
+ 
 notifications:
   email: false
   webhooks: https://fathomless-fjord-24024.herokuapp.com/notify
