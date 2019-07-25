@@ -21,6 +21,10 @@ Javascript client library for Skycoin API. This library is a Javascript assembly
     - [Memory Managemanet](#memory-management)
 - [Make rules](#make-rules)
 - [Development setup](#development-setup)
+- [LibJS Skycoin wrappers for the Skycoin client API](#libjs-skycoin-wrappers-for-the-skycoin-client-api)
+  - [Clients](#clients)
+  - [LibSky-Axios Client](#libsky-axios-client)
+  - [LibSky-Node Client](#libsky-node-client)
   <!-- /MarkdownTOC -->
 
 ## LibJS Skycoin wrappers for the Skycoin cipher
