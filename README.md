@@ -8,7 +8,7 @@ Javascript client library for Skycoin API. This library is a Javascript assembly
 
 <!-- MarkdownTOC levels="1,2,3,4,5" autolink="true" bracket="round" -->
 
-- [LibJS-skycoin wrappers for the Skycoin cipher](#libjsskycoin-wrappers-for-the-skycoin-cipher)
+- [LibJS-skycoin wrappers for the Skycoin cipher](#libjs-skycoin-wrappers-for-the-skycoin-cipher)
   - [Installation](#installation)
   - [Using the API](#usage)
     - [Naming](#naming)
@@ -46,13 +46,13 @@ Execute (`make build`) to install the library.
 
 #### Naming
 
-The exported function in Libskycoin .NET have the following naming format: `SKY_package_func_name` where package is replace by the package where the original Skycoin function is and func_name is the name of the function. For example, `LoadConfig` function from `cli` package is called in .Net `SKY_cli_LoadConfig`
+The exported function in Libskycoin JS have the following naming format: `SKY_package_func_name` where package is replace by the package where the original Skycoin function is and func_name is the name of the function. For example, `LoadConfig` function from `cli` package is called in .Net `SKY_cli_LoadConfig`
 
 #### Parameters
 
 All skycoin exported functions return an error object as the last of the return parameters. In .NET error is return as an `uint` and it is the first return parameter. The rest of the parameters are returned in the same order.
 
-Receivers in Skycoin are the first of the input parameters. Simple types, like integer, float, string will be used as the corresponding types in .NET, except what act as pointers.
+Receivers in Skycoin are the first of the input parameters. Simple types, like integer, float, string will be used as the corresponding types in JS, except what act as pointers.
 
 ##### Handles
 
@@ -63,7 +63,7 @@ Some of Skycoin types are too complex to be exported to a scripting language. So
   func (c Config) FullWalletPath() string
 ```
 
-Config is a struct type that is treated as a handle in Libskycoin .Net . The usage in .Net will be:
+Config is a struct type that is treated as a handle in Libskycoin JS . The usage in .Net will be:
 
 ```js
       var skycoin = require('./lib/skycoin/build/Release/skycoin');
