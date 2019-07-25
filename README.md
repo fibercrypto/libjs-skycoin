@@ -282,3 +282,102 @@ https://www.npmjs.com/package/node-gyp
     make build
 
 Final results are placed in the lib/skycoin/build/Release/ folder.
+
+## LibJS Skycoin wrappers for the Skycoin client API
+
+**LibJS Skycoin** contains different clients libraries generated using [SWAGGER](https://swagger.io/) tools from the latest [OpenApi Specification](https://www.openapis.org/)  in the [GitHub Repository](https://github.com/simelo/libskycoin/tree/develop/lib/swagger) of **LibSkycoin**.
+
+### Clients
+
+| Name            | Swagger Generator |
+| :-------------: | :---------------: |
+| libsky-axios    |  typescript-axios |
+| libsky-node     |  typescript-node  |
+
+### LibSky-Axios Client
+
+**LibSky-Axios** is the client library generated using the typescript-axios Swagger generator.
+
+#### Installation
+
+Before installing, make sure you understand the choices available to [install a NPM package](https://docs.npmjs.com/about-npm) . For instance, in case of [installing NPM client tools](https://docs.npmjs.com/getting-started/) the process would look like this, using [`npm install` command](https://docs.npmjs.com/packages-and-modules/).
+
+```sh
+
+npm install libsky-axios
+```
+
+#### Install from sources
+
+Download the repository from http://github.com/simelo/libjs-skycoin.git.
+Execute (`make build`) to build the library. Then
+
+```sh
+npm install PATH_TO_REPOSITORY/lib/skyapi/axios
+```
+
+#### Usage
+
+Once installed to your project you can use the library as in the example below.
+
+```js
+"use strict";
+
+let libsky = require('libsky-axios'); // Import the library
+
+let clientConfig = new libsky.Configuration(); // Create a basic client configuration object
+
+const nodeUrl = 'https://node.skycoin.net'; // Url to a Skycoin Node
+
+let client = new libsky.DefaultApi(clientConfig, nodeUrl); // Create a client object
+
+client.version().then( // Get version data from nodeUrl
+    result => {
+      console.log(result.data);
+      // Print the Version Object in result.data
+    }
+);
+```
+
+### LibSky-Node Client
+
+**LibSky-Node** is the client library generated using the typescript-node Swagger generator.
+
+#### Installation
+
+Before installing, make sure you understand the choices available to [install a NPM package](https://docs.npmjs.com/about-npm) . For instance, in case of [installing NPM client tools](https://docs.npmjs.com/getting-started/) the process would look like this, using [`npm install` command](https://docs.npmjs.com/packages-and-modules/).
+
+```sh
+
+npm install libsky-node
+```
+
+#### Install from sources
+
+Download the repository from http://github.com/simelo/libjs-skycoin.git.
+Execute (`make build`) to build the library. Then
+
+```sh
+npm install PATH_TO_REPOSITORY/lib/skyapi/node
+```
+
+#### Usage
+
+Once installed to your project you can use the library as in the example below.
+
+```js
+"use strict";
+
+let libsky = require('libsky-node'); // Import the library
+
+const nodeUrl = 'https://node.skycoin.net'; // Url to a Skycoin Node
+
+let client = new libsky.DefaultApi(nodeUrl); // Create a client object
+
+client.version().then( // Get version data from nodeUrl
+    result => {
+      console.log(result.data);
+      // Print the Version Object in result.data
+    }
+);
+```
