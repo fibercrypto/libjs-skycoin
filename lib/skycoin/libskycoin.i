@@ -9,8 +9,8 @@
 
 //Apply strictly to python
 //Not for other languages
-%include "/gopath/src/github.com/skycoin/libskycoin/lib/swig/common/common.i"
-%include "/gopath/src/github.com/skycoin/libskycoin/lib/swig/static/static.i"
+// %include "/gopath/src/github.com/skycoin/libskycoin/lib/swig/common/common.i"
+// %include "/gopath/src/github.com/skycoin/libskycoin/lib/swig/static/static.i"
 
 %include "swig.h"
 /* Find the modified copy of libskycoin */
