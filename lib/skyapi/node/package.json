@@ -1,5 +1,5 @@
 {
-    "name": "libsky-node",
+    "name": "@simelo/libsky-node",
     "version": "0.26.0",
     "description": "NodeJS client for libsky-node",
     "repository": "GIT_USER_ID/GIT_REPO_ID",
