@@ -210,17 +210,23 @@ Then in `restSharpClient` you can use all methods related to Api Client.
 
 ## Make Rules
 
-The following `make` rules are available after `git checkout` of this repository. They all require [Skycoin](https://github.com/skycoin/skycoin) to be checked out as a `git submodule` of libskycoin .NET .
+The following `make` rules are available after `git checkout` of this repository. They all require [Skycoin](https://github.com/skycoin/libskycoin) to be checked out as a `git submodule` of libskycoin JS .
 
 ```
 $ make help
 
-configure                      Setup build environment
-build-libc                     Build libskycoin static C client library
-build-swig                     Generate js source code from SWIG interface definitions
+install                        Build all libraries and tester
+test                           Test all clients
+test-node-client               Test node client
+test-axios-client              Test axios client
+build-axios-client             Build axios client
+build-node-client              Build node client
+build-node-tester              Build node client tester
+build-axios-tester             Build tester
+configure                      Configure build environment
+build-libc                     Build libskycoin C client library
+build-swig                     Generate Node C module from SWIG interfaces
 build-libsky-shared            Build shared library including SWIG wrappers
-build                          Build library
-test                           Run all tests
 ```
 
 ## Development setup
