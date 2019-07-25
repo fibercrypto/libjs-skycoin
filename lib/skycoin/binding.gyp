@@ -15,13 +15,14 @@
                 "/usr/include/webkitgtk-1.0",
                 "/usr/include/webkitgtk-4.0"
             ],
-            "cflags": ["-v", "-Wall -std=c++11", "-DBUILDSWIGNODE=OFF"],
-            "cflags_cc": ["-v", "-Wall -std=c++11", "-DBUILDSWIGNODE=OFF"],
-            'defines': [ '_GLIBCXX_USE_C99_MATH' ],
+            "cflags": ["-v", "-Wall -std=c++11", "-DBUILDSWIGNODE=OFF", "-fpermissive"],
+            "cflags_cc": ["-v", "-Wall -std=c++11", "-DBUILDSWIGNODE=OFF", "-fpermissive"],
+            'defines': ['_GLIBCXX_USE_C99_MATH'],
         },
     ],
     'variables': {
         'build_v8_with_gn': 'true',
         'enable_lto': 'true',
+        'version': '0.26.0'
     }
 }

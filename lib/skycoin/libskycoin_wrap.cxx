@@ -1621,25 +1621,26 @@ fail: ;
 #define SWIGTYPE_p_p_coin__Block swig_types[57]
 #define SWIGTYPE_p_p_coin__BlockHeader swig_types[58]
 #define SWIGTYPE_p_p_coin__Transaction swig_types[59]
-#define SWIGTYPE_p_secp256k1go__Field swig_types[60]
-#define SWIGTYPE_p_secp256k1go__XY swig_types[61]
-#define SWIGTYPE_p_secp256k1go__XYZ swig_types[62]
-#define SWIGTYPE_p_short swig_types[63]
-#define SWIGTYPE_p_signed_char swig_types[64]
-#define SWIGTYPE_p_transaction__UxBalance swig_types[65]
-#define SWIGTYPE_p_uintptr_t swig_types[66]
-#define SWIGTYPE_p_unsigned_char swig_types[67]
-#define SWIGTYPE_p_unsigned_int swig_types[68]
-#define SWIGTYPE_p_unsigned_long_long swig_types[69]
-#define SWIGTYPE_p_unsigned_short swig_types[70]
-#define SWIGTYPE_p_void swig_types[71]
-#define SWIGTYPE_p_wallet__Balance swig_types[72]
-#define SWIGTYPE_p_wallet__BalancePair swig_types[73]
-#define SWIGTYPE_p_wallet__Entry swig_types[74]
-#define SWIGTYPE_p_wallet__Note swig_types[75]
-#define SWIGTYPE_p_wallet__ReadableNote swig_types[76]
-static swig_type_info *swig_types[78];
-static swig_module_info swig_module = {swig_types, 77, 0, 0, 0, 0};
+#define SWIGTYPE_p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int swig_types[60]
+#define SWIGTYPE_p_secp256k1go__Field swig_types[61]
+#define SWIGTYPE_p_secp256k1go__XY swig_types[62]
+#define SWIGTYPE_p_secp256k1go__XYZ swig_types[63]
+#define SWIGTYPE_p_short swig_types[64]
+#define SWIGTYPE_p_signed_char swig_types[65]
+#define SWIGTYPE_p_transaction__UxBalance swig_types[66]
+#define SWIGTYPE_p_uintptr_t swig_types[67]
+#define SWIGTYPE_p_unsigned_char swig_types[68]
+#define SWIGTYPE_p_unsigned_int swig_types[69]
+#define SWIGTYPE_p_unsigned_long_long swig_types[70]
+#define SWIGTYPE_p_unsigned_short swig_types[71]
+#define SWIGTYPE_p_void swig_types[72]
+#define SWIGTYPE_p_wallet__Balance swig_types[73]
+#define SWIGTYPE_p_wallet__BalancePair swig_types[74]
+#define SWIGTYPE_p_wallet__Entry swig_types[75]
+#define SWIGTYPE_p_wallet__Note swig_types[76]
+#define SWIGTYPE_p_wallet__ReadableNote swig_types[77]
+static swig_type_info *swig_types[79];
+static swig_module_info swig_module = {swig_types, 78, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1667,6 +1668,53 @@ static swig_module_info swig_module = {swig_types, 77, 0, 0, 0, 0};
 	#include "skytypes.h"
 
 
+	int equalSlices(GoSlice* slice1, GoSlice* slice2, int elem_size){
+	  if(slice1->len != slice2->len)
+		return 0;
+	  return memcmp(slice1->data, slice2->data, slice1->len * elem_size) == 0;
+	}
+	int equalTransactions(coin__Transaction* t1, coin__Transaction* t2){
+		if( t1->Length != t2->Length || t1->Type != t2->Type ){
+			return 0;
+		}
+		if( memcmp(&t1->InnerHash, &t2->InnerHash, sizeof(cipher__SHA256)) != 0 )
+			return 0;
+		if(!equalSlices((GoSlice*)&t1->Sigs, (GoSlice*)&t2->Sigs, sizeof(cipher__Sig)))
+			return 0;
+		if(!equalSlices((GoSlice*)&t1->In, (GoSlice*)&t2->In, sizeof(cipher__SHA256)))
+			return 0;
+		if(!equalSlices((GoSlice*)&t1->Out, (GoSlice*)&t2->Out, sizeof(coin__TransactionOutput)))
+			return 0;
+		return 1;
+	}
+	int equalTransactionsArrays(coin__Transactions* pTxs1, coin__Transactions* pTxs2){
+		if( pTxs1->len != pTxs2->len )
+			return 0;
+		coin__Transaction* pTx1 = pTxs1->data;
+		coin__Transaction* pTx2 = pTxs2->data;
+		int i;
+		for(i = 0; i < pTxs1->len; i++){
+			if(!equalTransactions(pTx1, pTx2))
+				return 0;
+			pTx1++;
+			pTx2++;
+		}
+		return 1;
+	}
+	int equalBlockHeaders(coin__BlockHeader* bh1, coin__BlockHeader* bh2){
+		if( bh1->Version != bh2->Version || bh1->Time != bh2->Time || 
+			bh1->BkSeq != bh2->BkSeq || bh1->Fee != bh2->Fee)
+			return 0;
+		if( memcmp( &bh1->PrevHash, bh2->PrevHash, sizeof(bh2->PrevHash) ) != 0 )
+			return 0;
+		if( memcmp( &bh1->BodyHash, bh2->PrevHash, sizeof(bh2->BodyHash) ) != 0 )
+			return 0;
+		if( memcmp( &bh1->UxHash, bh2->PrevHash, sizeof(bh2->UxHash) ) != 0 )
+			return 0;
+		return 1;
+	}
+
+
 SWIGINTERN
 int SWIG_AsVal_int (v8::Handle<v8::Value> valRef, int* val)
 {
@@ -1683,6 +1731,700 @@ SWIGINTERNINLINE
 v8::Handle<v8::Value> SWIG_From_int  (int value)
 {
   return SWIGV8_INT32_NEW(value);
+}
+
+
+static GoSlice *new_GoSlicePtr() { 
+  return new GoSlice(); 
+}
+
+static GoSlice *copy_GoSlicePtr(GoSlice value) { 
+  return new GoSlice(value); 
+}
+
+static void delete_GoSlicePtr(GoSlice *obj) { 
+  if (obj) delete obj; 
+}
+
+static void GoSlicePtr_assign(GoSlice *obj, GoSlice value) {
+  *obj = value;
+}
+
+static GoSlice GoSlicePtr_value(GoSlice *obj) {
+  return *obj;
+}
+
+
+static GoUint8_ *new_GoUint8Ptr() { 
+  return new GoUint8_(); 
+}
+
+static GoUint8_ *copy_GoUint8Ptr(GoUint8_ value) { 
+  return new GoUint8_(value); 
+}
+
+static void delete_GoUint8Ptr(GoUint8_ *obj) { 
+  if (obj) delete obj; 
+}
+
+static void GoUint8Ptr_assign(GoUint8_ *obj, GoUint8_ value) {
+  *obj = value;
+}
+
+static GoUint8_ GoUint8Ptr_value(GoUint8_ *obj) {
+  return *obj;
+}
+
+
+#include <limits.h>
+#if !defined(SWIG_NO_LLONG_MAX)
+# if !defined(LLONG_MAX) && defined(__GNUC__) && defined (__LONG_LONG_MAX__)
+#   define LLONG_MAX __LONG_LONG_MAX__
+#   define LLONG_MIN (-LLONG_MAX - 1LL)
+#   define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
+# endif
+#endif
+
+
+SWIGINTERN
+int SWIG_AsVal_double (v8::Handle<v8::Value> obj, double *val)
+{
+  if(!obj->IsNumber()) {
+    return SWIG_TypeError;
+  }
+  if(val) *val = SWIGV8_NUMBER_VALUE(obj);
+
+  return SWIG_OK;
+}
+
+
+#include <float.h>
+
+
+#include <math.h>
+
+
+SWIGINTERNINLINE int
+SWIG_CanCastAsInteger(double *d, double min, double max) {
+  double x = *d;
+  if ((min <= x && x <= max)) {
+   double fx = floor(x);
+   double cx = ceil(x);
+   double rd =  ((x - fx) < 0.5) ? fx : cx; /* simple rint */
+   if ((errno == EDOM) || (errno == ERANGE)) {
+     errno = 0;
+   } else {
+     double summ, reps, diff;
+     if (rd < x) {
+       diff = x - rd;
+     } else if (rd > x) {
+       diff = rd - x;
+     } else {
+       return 1;
+     }
+     summ = rd + x;
+     reps = diff/summ;
+     if (reps < 8*DBL_EPSILON) {
+       *d = rd;
+       return 1;
+     }
+   }
+  }
+  return 0;
+}
+
+
+SWIGINTERN
+int SWIG_AsVal_unsigned_SS_long (v8::Handle<v8::Value> obj, unsigned long *val)
+{
+  if(!obj->IsNumber()) {
+    return SWIG_TypeError;
+  }
+
+  long longVal = (long) SWIGV8_NUMBER_VALUE(obj);
+
+  if(longVal < 0) {
+      return SWIG_OverflowError;
+  }
+
+  if(val) *val = longVal;
+
+  return SWIG_OK;
+}
+
+
+SWIGINTERN int
+SWIG_AsVal_unsigned_SS_char (v8::Handle<v8::Value> obj, unsigned char *val)
+{
+  unsigned long v;
+  int res = SWIG_AsVal_unsigned_SS_long (obj, &v);
+  if (SWIG_IsOK(res)) {
+    if ((v > UCHAR_MAX)) {
+      return SWIG_OverflowError;
+    } else {
+      if (val) *val = static_cast< unsigned char >(v);
+    }
+  }  
+  return res;
+}
+
+
+SWIGINTERNINLINE
+v8::Handle<v8::Value> SWIG_From_long  (long value)
+{
+  return SWIGV8_NUMBER_NEW(value);
+}
+
+
+SWIGINTERNINLINE
+v8::Handle<v8::Value> SWIG_From_unsigned_SS_long  (unsigned long value)
+{
+  return (value > LONG_MAX) ?
+    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(static_cast< long >(value));
+}
+
+
+SWIGINTERNINLINE v8::Handle<v8::Value>
+SWIG_From_unsigned_SS_char  (unsigned char value)
+{    
+  return SWIG_From_unsigned_SS_long  (value);
+}
+
+
+static _GoString_ *new_GoStringPtr() { 
+  return new _GoString_(); 
+}
+
+static _GoString_ *copy_GoStringPtr(_GoString_ value) { 
+  return new _GoString_(value); 
+}
+
+static void delete_GoStringPtr(_GoString_ *obj) { 
+  if (obj) delete obj; 
+}
+
+static void GoStringPtr_assign(_GoString_ *obj, _GoString_ value) {
+  *obj = value;
+}
+
+static _GoString_ GoStringPtr_value(_GoString_ *obj) {
+  return *obj;
+}
+
+
+static int *new_IntPtr() { 
+  return new int(); 
+}
+
+static int *copy_IntPtr(int value) { 
+  return new int(value); 
+}
+
+static void delete_IntPtr(int *obj) { 
+  if (obj) delete obj; 
+}
+
+static void IntPtr_assign(int *obj, int value) {
+  *obj = value;
+}
+
+static int IntPtr_value(int *obj) {
+  return *obj;
+}
+
+
+static coin__Transaction *new_coin__TransactionPtr() { 
+  return new coin__Transaction(); 
+}
+
+static coin__Transaction *copy_coin__TransactionPtr(coin__Transaction value) { 
+  return new coin__Transaction(value); 
+}
+
+static void delete_coin__TransactionPtr(coin__Transaction *obj) { 
+  if (obj) delete obj; 
+}
+
+static void coin__TransactionPtr_assign(coin__Transaction *obj, coin__Transaction value) {
+  *obj = value;
+}
+
+static coin__Transaction coin__TransactionPtr_value(coin__Transaction *obj) {
+  return *obj;
+}
+
+
+static AddressUxOuts_Handle *new_AddressUxOuts__HandlePtr() { 
+  return new AddressUxOuts_Handle(); 
+}
+
+static AddressUxOuts_Handle *copy_AddressUxOuts__HandlePtr(AddressUxOuts_Handle value) { 
+  return new AddressUxOuts_Handle(value); 
+}
+
+static void delete_AddressUxOuts__HandlePtr(AddressUxOuts_Handle *obj) { 
+  if (obj) delete obj; 
+}
+
+static void AddressUxOuts__HandlePtr_assign(AddressUxOuts_Handle *obj, AddressUxOuts_Handle value) {
+  *obj = value;
+}
+
+static AddressUxOuts_Handle AddressUxOuts__HandlePtr_value(AddressUxOuts_Handle *obj) {
+  return *obj;
+}
+
+
+SWIGINTERN
+int SWIG_AsVal_long (v8::Handle<v8::Value> obj, long* val)
+{
+  if (!obj->IsNumber()) {
+    return SWIG_TypeError;
+  }
+  if(val) *val = (long) SWIGV8_INTEGER_VALUE(obj);
+
+  return SWIG_OK;
+}
+
+
+#if defined(LLONG_MAX) && !defined(SWIG_LONG_LONG_AVAILABLE)
+#  define SWIG_LONG_LONG_AVAILABLE
+#endif
+
+
+#ifdef SWIG_LONG_LONG_AVAILABLE
+SWIGINTERN
+int SWIG_AsVal_long_SS_long (v8::Handle<v8::Value> obj, long long* val)
+{
+  if (!obj->IsNumber()) {
+    return SWIG_TypeError;
+  }
+  if(val) *val = (long long) SWIGV8_INTEGER_VALUE(obj);
+
+  return SWIG_OK;
+}
+#endif
+
+
+#ifdef SWIG_LONG_LONG_AVAILABLE
+SWIGINTERNINLINE
+v8::Handle<v8::Value> SWIG_From_long_SS_long  (long long value)
+{
+  return SWIGV8_NUMBER_NEW(value);
+}
+#endif
+
+
+static unsigned long long *new_GoUint64Ptr() { 
+  return new unsigned long long(); 
+}
+
+static unsigned long long *copy_GoUint64Ptr(unsigned long long value) { 
+  return new unsigned long long(value); 
+}
+
+static void delete_GoUint64Ptr(unsigned long long *obj) { 
+  if (obj) delete obj; 
+}
+
+static void GoUint64Ptr_assign(unsigned long long *obj, unsigned long long value) {
+  *obj = value;
+}
+
+static unsigned long long GoUint64Ptr_value(unsigned long long *obj) {
+  return *obj;
+}
+
+
+#ifdef SWIG_LONG_LONG_AVAILABLE
+SWIGINTERN
+int SWIG_AsVal_unsigned_SS_long_SS_long (v8::Handle<v8::Value> obj, unsigned long long *val)
+{
+  if(!obj->IsNumber()) {
+    return SWIG_TypeError;
+  }
+
+  long long longVal = (long long) SWIGV8_NUMBER_VALUE(obj);
+
+  if(longVal < 0) {
+      return SWIG_OverflowError;
+  }
+
+  if(val) *val = longVal;
+
+  return SWIG_OK;
+}
+#endif
+
+
+#ifdef SWIG_LONG_LONG_AVAILABLE
+SWIGINTERNINLINE
+v8::Handle<v8::Value> SWIG_From_unsigned_SS_long_SS_long  (unsigned long long value)
+{
+  return (value > LONG_MAX) ?
+    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(static_cast< long >(value));
+}
+#endif
+
+
+static long long *new_GointPtr() { 
+  return new long long(); 
+}
+
+static long long *copy_GointPtr(long long value) { 
+  return new long long(value); 
+}
+
+static void delete_GointPtr(long long *obj) { 
+  if (obj) delete obj; 
+}
+
+static void GointPtr_assign(long long *obj, long long value) {
+  *obj = value;
+}
+
+static long long GointPtr_value(long long *obj) {
+  return *obj;
+}
+
+
+static unsigned short *new_GoUint16Ptr() { 
+  return new unsigned short(); 
+}
+
+static unsigned short *copy_GoUint16Ptr(unsigned short value) { 
+  return new unsigned short(value); 
+}
+
+static void delete_GoUint16Ptr(unsigned short *obj) { 
+  if (obj) delete obj; 
+}
+
+static void GoUint16Ptr_assign(unsigned short *obj, unsigned short value) {
+  *obj = value;
+}
+
+static unsigned short GoUint16Ptr_value(unsigned short *obj) {
+  return *obj;
+}
+
+
+SWIGINTERN int
+SWIG_AsVal_unsigned_SS_short (v8::Handle<v8::Value> obj, unsigned short *val)
+{
+  unsigned long v;
+  int res = SWIG_AsVal_unsigned_SS_long (obj, &v);
+  if (SWIG_IsOK(res)) {
+    if ((v > USHRT_MAX)) {
+      return SWIG_OverflowError;
+    } else {
+      if (val) *val = static_cast< unsigned short >(v);
+    }
+  }  
+  return res;
+}
+
+
+SWIGINTERNINLINE v8::Handle<v8::Value>
+SWIG_From_unsigned_SS_short  (unsigned short value)
+{    
+  return SWIG_From_unsigned_SS_long  (value);
+}
+
+
+static unsigned int *new_GoUint32Ptr() { 
+  return new unsigned int(); 
+}
+
+static unsigned int *copy_GoUint32Ptr(unsigned int value) { 
+  return new unsigned int(value); 
+}
+
+static void delete_GoUint32Ptr(unsigned int *obj) { 
+  if (obj) delete obj; 
+}
+
+static void GoUint32Ptr_assign(unsigned int *obj, unsigned int value) {
+  *obj = value;
+}
+
+static unsigned int GoUint32Ptr_value(unsigned int *obj) {
+  return *obj;
+}
+
+
+SWIGINTERN int
+SWIG_AsVal_unsigned_SS_int (v8::Handle<v8::Value> obj, unsigned int *val)
+{
+  unsigned long v;
+  int res = SWIG_AsVal_unsigned_SS_long (obj, &v);
+  if (SWIG_IsOK(res)) {
+    if ((v > UINT_MAX)) {
+      return SWIG_OverflowError;
+    } else {
+      if (val) *val = static_cast< unsigned int >(v);
+    }
+  }  
+  return res;
+}
+
+
+SWIGINTERNINLINE v8::Handle<v8::Value>
+SWIG_From_unsigned_SS_int  (unsigned int value)
+{    
+  return SWIG_From_unsigned_SS_long  (value);
+}
+
+
+static cipher__Address *new_cipher__AddressPtr() { 
+  return new cipher__Address(); 
+}
+
+static cipher__Address *copy_cipher__AddressPtr(cipher__Address value) { 
+  return new cipher__Address(value); 
+}
+
+static void delete_cipher__AddressPtr(cipher__Address *obj) { 
+  if (obj) delete obj; 
+}
+
+static void cipher__AddressPtr_assign(cipher__Address *obj, cipher__Address value) {
+  *obj = value;
+}
+
+static cipher__Address cipher__AddressPtr_value(cipher__Address *obj) {
+  return *obj;
+}
+
+
+static Transactions__Handle *new_Transactions__HandlePtr() { 
+  return new Transactions__Handle(); 
+}
+
+static Transactions__Handle *copy_Transactions__HandlePtr(Transactions__Handle value) { 
+  return new Transactions__Handle(value); 
+}
+
+static void delete_Transactions__HandlePtr(Transactions__Handle *obj) { 
+  if (obj) delete obj; 
+}
+
+static void Transactions__HandlePtr_assign(Transactions__Handle *obj, Transactions__Handle value) {
+  *obj = value;
+}
+
+static Transactions__Handle Transactions__HandlePtr_value(Transactions__Handle *obj) {
+  return *obj;
+}
+
+
+static Transaction__Handle *new_Transaction__HandlePtr() { 
+  return new Transaction__Handle(); 
+}
+
+static Transaction__Handle *copy_Transaction__HandlePtr(Transaction__Handle value) { 
+  return new Transaction__Handle(value); 
+}
+
+static void delete_Transaction__HandlePtr(Transaction__Handle *obj) { 
+  if (obj) delete obj; 
+}
+
+static void Transaction__HandlePtr_assign(Transaction__Handle *obj, Transaction__Handle value) {
+  *obj = value;
+}
+
+static Transaction__Handle Transaction__HandlePtr_value(Transaction__Handle *obj) {
+  return *obj;
+}
+
+
+static Block__Handle *new_Block__HandlePtr() { 
+  return new Block__Handle(); 
+}
+
+static Block__Handle *copy_Block__HandlePtr(Block__Handle value) { 
+  return new Block__Handle(value); 
+}
+
+static void delete_Block__HandlePtr(Block__Handle *obj) { 
+  if (obj) delete obj; 
+}
+
+static void Block__HandlePtr_assign(Block__Handle *obj, Block__Handle value) {
+  *obj = value;
+}
+
+static Block__Handle Block__HandlePtr_value(Block__Handle *obj) {
+  return *obj;
+}
+
+
+static BlockHeader__Handle *new_BlockHeader__HandlePtr() { 
+  return new BlockHeader__Handle(); 
+}
+
+static BlockHeader__Handle *copy_BlockHeader__HandlePtr(BlockHeader__Handle value) { 
+  return new BlockHeader__Handle(value); 
+}
+
+static void delete_BlockHeader__HandlePtr(BlockHeader__Handle *obj) { 
+  if (obj) delete obj; 
+}
+
+static void BlockHeader__HandlePtr_assign(BlockHeader__Handle *obj, BlockHeader__Handle value) {
+  *obj = value;
+}
+
+static BlockHeader__Handle BlockHeader__HandlePtr_value(BlockHeader__Handle *obj) {
+  return *obj;
+}
+
+
+static BlockBody__Handle *new_BlockBody__HandlePtr() { 
+  return new BlockBody__Handle(); 
+}
+
+static BlockBody__Handle *copy_BlockBody__HandlePtr(BlockBody__Handle value) { 
+  return new BlockBody__Handle(value); 
+}
+
+static void delete_BlockBody__HandlePtr(BlockBody__Handle *obj) { 
+  if (obj) delete obj; 
+}
+
+static void BlockBody__HandlePtr_assign(BlockBody__Handle *obj, BlockBody__Handle value) {
+  *obj = value;
+}
+
+static BlockBody__Handle BlockBody__HandlePtr_value(BlockBody__Handle *obj) {
+  return *obj;
+}
+
+
+static Signature_Handle *new_Signature_HandlePtr() { 
+  return new Signature_Handle(); 
+}
+
+static Signature_Handle *copy_Signature_HandlePtr(Signature_Handle value) { 
+  return new Signature_Handle(value); 
+}
+
+static void delete_Signature_HandlePtr(Signature_Handle *obj) { 
+  if (obj) delete obj; 
+}
+
+static void Signature_HandlePtr_assign(Signature_Handle *obj, Signature_Handle value) {
+  *obj = value;
+}
+
+static Signature_Handle Signature_HandlePtr_value(Signature_Handle *obj) {
+  return *obj;
+}
+
+
+static Number_Handle *new_Number_HandlePtr() { 
+  return new Number_Handle(); 
+}
+
+static Number_Handle *copy_Number_HandlePtr(Number_Handle value) { 
+  return new Number_Handle(value); 
+}
+
+static void delete_Number_HandlePtr(Number_Handle *obj) { 
+  if (obj) delete obj; 
+}
+
+static void Number_HandlePtr_assign(Number_Handle *obj, Number_Handle value) {
+  *obj = value;
+}
+
+static Number_Handle Number_HandlePtr_value(Number_Handle *obj) {
+  return *obj;
+}
+
+
+static unsigned char *new_CharPtr() { 
+  return new unsigned char(); 
+}
+
+static unsigned char *copy_CharPtr(unsigned char value) { 
+  return new unsigned char(value); 
+}
+
+static void delete_CharPtr(unsigned char *obj) { 
+  if (obj) delete obj; 
+}
+
+static void CharPtr_assign(unsigned char *obj, unsigned char value) {
+  *obj = value;
+}
+
+static unsigned char CharPtr_value(unsigned char *obj) {
+  return *obj;
+}
+
+
+static FeeCalculator *new_FeeCalculatorPtr() { 
+  return new FeeCalculator(); 
+}
+
+static FeeCalculator *copy_FeeCalculatorPtr(FeeCalculator value) { 
+  return new FeeCalculator(value); 
+}
+
+static void delete_FeeCalculatorPtr(FeeCalculator *obj) { 
+  if (obj) delete obj; 
+}
+
+static void FeeCalculatorPtr_assign(FeeCalculator *obj, FeeCalculator value) {
+  *obj = value;
+}
+
+static FeeCalculator FeeCalculatorPtr_value(FeeCalculator *obj) {
+  return *obj;
+}
+
+
+static FeeCalcFunc *new_FeeCalcFuncPtr() { 
+  return new FeeCalcFunc(); 
+}
+
+static FeeCalcFunc *copy_FeeCalcFuncPtr(FeeCalcFunc value) { 
+  return new FeeCalcFunc(value); 
+}
+
+static void delete_FeeCalcFuncPtr(FeeCalcFunc *obj) { 
+  if (obj) delete obj; 
+}
+
+static void FeeCalcFuncPtr_assign(FeeCalcFunc *obj, FeeCalcFunc value) {
+  *obj = value;
+}
+
+static FeeCalcFunc FeeCalcFuncPtr_value(FeeCalcFunc *obj) {
+  return *obj;
+}
+
+
+static coin__Block* *new_coin__BlockPtr() { 
+  return new coin__Block*(); 
+}
+
+static coin__Block* *copy_coin__BlockPtr(coin__Block* value) { 
+  return new coin__Block*(value); 
+}
+
+static void delete_coin__BlockPtr(coin__Block* *obj) { 
+  if (obj) delete obj; 
+}
+
+static void coin__BlockPtr_assign(coin__Block* *obj, coin__Block* value) {
+  *obj = value;
+}
+
+static coin__Block* coin__BlockPtr_value(coin__Block* *obj) {
+  return *obj;
 }
 
 
@@ -1738,6 +2480,13 @@ SWIG_AsCharPtrAndSize(v8::Handle<v8::Value> valRef, char** cptr, size_t* psize, 
 
 
 
+SWIGINTERN int _GoString__SetString(_GoString_ *self,char *str){
+		self->p = str;
+		self->n = strlen(str);
+	}
+SWIGINTERN char *_GoString__getString(_GoString_ *self){
+		return (const char *)self->p;
+	}
 
 SWIGINTERNINLINE v8::Handle<v8::Value>
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
@@ -1762,252 +2511,84 @@ SWIG_FromCharPtr(const char *cptr)
   return SWIG_FromCharPtrAndSize(cptr, (cptr ? strlen(cptr) : 0));
 }
 
+SWIGINTERN int _GoString__isEqual(_GoString_ *self,_GoString_ *string2){
+  return (self->n == string2->n) &&
+         (strcmp((char *)self->p, (char *)string2->p) == 0);
+}
+SWIGINTERN int GoSlice_isEqual(GoSlice *self,GoSlice *slice){
+		return ((self->len == slice->len)) && (memcmp(self->data,slice->data, sizeof(GoSlice_))==0 );
+	}
+SWIGINTERN void GoSlice_convertString(GoSlice *self,_GoString_ data){
+		self->data = data.p;
+		self->len = strlen(data.p);
+		self->cap = self->len;
+	}
 
-SWIGINTERN
-int SWIG_AsVal_double (v8::Handle<v8::Value> obj, double *val)
-{
-  if(!obj->IsNumber()) {
-    return SWIG_TypeError;
+SWIGINTERN int
+SWIG_AsCharArray(v8::Handle<v8::Value> obj, char *val, size_t size)
+{ 
+  char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
+  int res = SWIG_AsCharPtrAndSize(obj, &cptr, &csize, &alloc);
+  if (SWIG_IsOK(res)) {
+    /* special case of single char conversion when we don't need space for NUL */
+    if (size == 1 && csize == 2 && cptr && !cptr[1]) --csize;
+    if (csize <= size) {
+      if (val) {
+	if (csize) memcpy(val, cptr, csize*sizeof(char));
+	if (csize < size) memset(val + csize, 0, (size - csize)*sizeof(char));
+      }
+      if (alloc == SWIG_NEWOBJ) {
+	delete[] cptr;
+	res = SWIG_DelNewMask(res);
+      }      
+      return res;
+    }
+    if (alloc == SWIG_NEWOBJ) delete[] cptr;
   }
-  if(val) *val = SWIGV8_NUMBER_VALUE(obj);
-
-  return SWIG_OK;
+  return SWIG_TypeError;
 }
 
 
-#include <float.h>
-
-
-#include <math.h>
-
-
-SWIGINTERNINLINE int
-SWIG_CanCastAsInteger(double *d, double min, double max) {
-  double x = *d;
-  if ((min <= x && x <= max)) {
-   double fx = floor(x);
-   double cx = ceil(x);
-   double rd =  ((x - fx) < 0.5) ? fx : cx; /* simple rint */
-   if ((errno == EDOM) || (errno == ERANGE)) {
-     errno = 0;
-   } else {
-     double summ, reps, diff;
-     if (rd < x) {
-       diff = x - rd;
-     } else if (rd > x) {
-       diff = rd - x;
-     } else {
-       return 1;
-     }
-     summ = rd + x;
-     reps = diff/summ;
-     if (reps < 8*DBL_EPSILON) {
-       *d = rd;
-       return 1;
-     }
-   }
-  }
-  return 0;
-}
-
-
-SWIGINTERN
-int SWIG_AsVal_long (v8::Handle<v8::Value> obj, long* val)
-{
-  if (!obj->IsNumber()) {
-    return SWIG_TypeError;
-  }
-  if(val) *val = (long) SWIGV8_INTEGER_VALUE(obj);
-
-  return SWIG_OK;
-}
-
-
-#include <limits.h>
-#if !defined(SWIG_NO_LLONG_MAX)
-# if !defined(LLONG_MAX) && defined(__GNUC__) && defined (__LONG_LONG_MAX__)
-#   define LLONG_MAX __LONG_LONG_MAX__
-#   define LLONG_MIN (-LLONG_MAX - 1LL)
-#   define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
-# endif
-#endif
-
-
-#if defined(LLONG_MAX) && !defined(SWIG_LONG_LONG_AVAILABLE)
-#  define SWIG_LONG_LONG_AVAILABLE
-#endif
-
-
-#ifdef SWIG_LONG_LONG_AVAILABLE
-SWIGINTERN
-int SWIG_AsVal_long_SS_long (v8::Handle<v8::Value> obj, long long* val)
-{
-  if (!obj->IsNumber()) {
-    return SWIG_TypeError;
-  }
-  if(val) *val = (long long) SWIGV8_INTEGER_VALUE(obj);
-
-  return SWIG_OK;
-}
-#endif
-
-
-SWIGINTERNINLINE int
-SWIG_AsVal_ptrdiff_t (v8::Handle<v8::Value> obj, ptrdiff_t *val)
-{
-  int res = SWIG_TypeError;
-#ifdef SWIG_LONG_LONG_AVAILABLE
-  if (sizeof(ptrdiff_t) <= sizeof(long)) {
-#endif
+SWIGINTERN int
+SWIG_AsVal_char (v8::Handle<v8::Value> obj, char *val)
+{    
+  int res = SWIG_AsCharArray(obj, val, 1);
+  if (!SWIG_IsOK(res)) {
     long v;
-    res = SWIG_AsVal_long (obj, val ? &v : 0);
-    if (SWIG_IsOK(res) && val) *val = static_cast< ptrdiff_t >(v);
-#ifdef SWIG_LONG_LONG_AVAILABLE
-  } else if (sizeof(ptrdiff_t) <= sizeof(long long)) {
-    long long v;
-    res = SWIG_AsVal_long_SS_long (obj, val ? &v : 0);
-    if (SWIG_IsOK(res) && val) *val = static_cast< ptrdiff_t >(v);
-  }
-#endif
-  return res;
-}
-
-
-SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_long  (long value)
-{
-  return SWIGV8_NUMBER_NEW(value);
-}
-
-
-#ifdef SWIG_LONG_LONG_AVAILABLE
-SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_long_SS_long  (long long value)
-{
-  return SWIGV8_NUMBER_NEW(value);
-}
-#endif
-
-
-SWIGINTERNINLINE v8::Handle<v8::Value>
-SWIG_From_ptrdiff_t  (ptrdiff_t value)
-{    
-#ifdef SWIG_LONG_LONG_AVAILABLE
-  if (sizeof(ptrdiff_t) <= sizeof(long)) {
-#endif
-    return SWIG_From_long  (static_cast< long >(value));
-#ifdef SWIG_LONG_LONG_AVAILABLE
-  } else {
-    /* assume sizeof(ptrdiff_t) <= sizeof(long long) */
-    return SWIG_From_long_SS_long  (static_cast< long long >(value));
-  }
-#endif
-}
-
-
-SWIGINTERN
-int SWIG_AsVal_unsigned_SS_long (v8::Handle<v8::Value> obj, unsigned long *val)
-{
-  if(!obj->IsNumber()) {
-    return SWIG_TypeError;
-  }
-
-  long longVal = (long) SWIGV8_NUMBER_VALUE(obj);
-
-  if(longVal < 0) {
-      return SWIG_OverflowError;
-  }
-
-  if(val) *val = longVal;
-
-  return SWIG_OK;
-}
-
-
-#ifdef SWIG_LONG_LONG_AVAILABLE
-SWIGINTERN
-int SWIG_AsVal_unsigned_SS_long_SS_long (v8::Handle<v8::Value> obj, unsigned long long *val)
-{
-  if(!obj->IsNumber()) {
-    return SWIG_TypeError;
-  }
-
-  long long longVal = (long long) SWIGV8_NUMBER_VALUE(obj);
-
-  if(longVal < 0) {
-      return SWIG_OverflowError;
-  }
-
-  if(val) *val = longVal;
-
-  return SWIG_OK;
-}
-#endif
-
-
-SWIGINTERN int
-SWIG_AsVal_unsigned_SS_int (v8::Handle<v8::Value> obj, unsigned int *val)
-{
-  unsigned long v;
-  int res = SWIG_AsVal_unsigned_SS_long (obj, &v);
-  if (SWIG_IsOK(res)) {
-    if ((v > UINT_MAX)) {
-      return SWIG_OverflowError;
-    } else {
-      if (val) *val = static_cast< unsigned int >(v);
+    res = SWIG_AddCast(SWIG_AsVal_long (obj, &v));
+    if (SWIG_IsOK(res)) {
+      if ((CHAR_MIN <= v) && (v <= CHAR_MAX)) {
+	if (val) *val = static_cast< char >(v);
+      } else {
+	res = SWIG_OverflowError;
+      }
     }
-  }  
+  }
   return res;
 }
 
-
-SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_unsigned_SS_long  (unsigned long value)
-{
-  return (value > LONG_MAX) ?
-    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(static_cast< long >(value));
+SWIGINTERN void GoSlice_setAtChar(GoSlice *self,char p,long long i){
+		((char *) self->data)[i] = p;
+	}
+SWIGINTERN void GoSlice_getString(GoSlice *self,_GoString_ *out){
+	out->p = (char *)self->data;
+	out->n = strlen((char *)self->data);
 }
-
-
-SWIGINTERNINLINE v8::Handle<v8::Value>
-SWIG_From_unsigned_SS_int  (unsigned int value)
-{    
-  return SWIG_From_unsigned_SS_long  (value);
+SWIGINTERN int GoSlice_getAtString(GoSlice *self,int index,_GoString_ *outs){
+	int i;
+	_GoString_ *iStr;
+	char *out;
+	for (i = 0, iStr = (_GoString_ *)self->data; i < self->len; ++i, ++iStr)
+	{
+		if (index == i)
+		{
+			out = _GoString__getString(iStr);
+			_GoString__SetString(outs,out);
+			return 0;
+		}
+	}
+	return 1;
 }
-
-
-SWIGINTERN int
-SWIG_AsVal_unsigned_SS_char (v8::Handle<v8::Value> obj, unsigned char *val)
-{
-  unsigned long v;
-  int res = SWIG_AsVal_unsigned_SS_long (obj, &v);
-  if (SWIG_IsOK(res)) {
-    if ((v > UCHAR_MAX)) {
-      return SWIG_OverflowError;
-    } else {
-      if (val) *val = static_cast< unsigned char >(v);
-    }
-  }  
-  return res;
-}
-
-
-SWIGINTERNINLINE v8::Handle<v8::Value>
-SWIG_From_unsigned_SS_char  (unsigned char value)
-{    
-  return SWIG_From_unsigned_SS_long  (value);
-}
-
-
-#ifdef SWIG_LONG_LONG_AVAILABLE
-SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_unsigned_SS_long_SS_long  (unsigned long long value)
-{
-  return (value > LONG_MAX) ?
-    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(static_cast< long >(value));
-}
-#endif
-
 
 SWIGINTERN int
 SWIG_AsVal_signed_SS_char (v8::Handle<v8::Value> obj, signed char *val)
@@ -2160,6 +2741,3247 @@ SWIGV8_ClientData _exports_Number_clientData;
 SWIGV8_ClientData _exports_Signature_clientData;
 SWIGV8_ClientData _exports_Wallet_clientData;
 SWIGV8_ClientData _exports_FeeCalculator_clientData;
+
+
+static SwigV8ReturnValue _wrap_equalSlices(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice *arg1 = (GoSlice *) 0 ;
+  GoSlice *arg2 = (GoSlice *) 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int result;
+  
+  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_equalSlices.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "equalSlices" "', argument " "1"" of type '" "GoSlice *""'"); 
+  }
+  arg1 = reinterpret_cast< GoSlice * >(argp1);
+  res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "equalSlices" "', argument " "2"" of type '" "GoSlice *""'"); 
+  }
+  arg2 = reinterpret_cast< GoSlice * >(argp2);
+  ecode3 = SWIG_AsVal_int(args[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "equalSlices" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = static_cast< int >(val3);
+  result = (int)equalSlices(arg1,arg2,arg3);
+  jsresult = SWIG_From_int(static_cast< int >(result));
+  
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_equalTransactions(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Transaction *arg1 = (coin__Transaction *) 0 ;
+  coin__Transaction *arg2 = (coin__Transaction *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  int result;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_equalTransactions.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_coin__Transaction, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "equalTransactions" "', argument " "1"" of type '" "coin__Transaction *""'"); 
+  }
+  arg1 = reinterpret_cast< coin__Transaction * >(argp1);
+  res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_coin__Transaction, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "equalTransactions" "', argument " "2"" of type '" "coin__Transaction *""'"); 
+  }
+  arg2 = reinterpret_cast< coin__Transaction * >(argp2);
+  result = (int)equalTransactions(arg1,arg2);
+  jsresult = SWIG_From_int(static_cast< int >(result));
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_equalTransactionsArrays(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Transactions *arg1 = (coin__Transactions *) 0 ;
+  coin__Transactions *arg2 = (coin__Transactions *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  int result;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_equalTransactionsArrays.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_GoSlice_, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "equalTransactionsArrays" "', argument " "1"" of type '" "coin__Transactions *""'"); 
+  }
+  arg1 = reinterpret_cast< coin__Transactions * >(argp1);
+  res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_GoSlice_, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "equalTransactionsArrays" "', argument " "2"" of type '" "coin__Transactions *""'"); 
+  }
+  arg2 = reinterpret_cast< coin__Transactions * >(argp2);
+  result = (int)equalTransactionsArrays(arg1,arg2);
+  jsresult = SWIG_From_int(static_cast< int >(result));
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_equalBlockHeaders(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__BlockHeader *arg1 = (coin__BlockHeader *) 0 ;
+  coin__BlockHeader *arg2 = (coin__BlockHeader *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  int result;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_equalBlockHeaders.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_coin__BlockHeader, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "equalBlockHeaders" "', argument " "1"" of type '" "coin__BlockHeader *""'"); 
+  }
+  arg1 = reinterpret_cast< coin__BlockHeader * >(argp1);
+  res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_coin__BlockHeader, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "equalBlockHeaders" "', argument " "2"" of type '" "coin__BlockHeader *""'"); 
+  }
+  arg2 = reinterpret_cast< coin__BlockHeader * >(argp2);
+  result = (int)equalBlockHeaders(arg1,arg2);
+  jsresult = SWIG_From_int(static_cast< int >(result));
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_GoSlicePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_GoSlicePtr.");
+  
+  result = (GoSlice *)new_GoSlicePtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GoSlice, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_GoSlicePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice arg1 ;
+  void *argp1 ;
+  int res1 = 0 ;
+  GoSlice *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_GoSlicePtr.");
+  
+  {
+    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p_GoSlice,  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "copy_GoSlicePtr" "', argument " "1"" of type '" "GoSlice""'"); 
+    }  
+    if (!argp1) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "copy_GoSlicePtr" "', argument " "1"" of type '" "GoSlice""'");
+    } else {
+      arg1 = *(reinterpret_cast< GoSlice * >(argp1));
+    }
+  }
+  result = (GoSlice *)copy_GoSlicePtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GoSlice, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_GoSlicePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice *arg1 = (GoSlice *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_GoSlicePtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_GoSlicePtr" "', argument " "1"" of type '" "GoSlice *""'"); 
+  }
+  arg1 = reinterpret_cast< GoSlice * >(argp1);
+  delete_GoSlicePtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoSlicePtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice *arg1 = (GoSlice *) 0 ;
+  GoSlice arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 ;
+  int res2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoSlicePtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoSlicePtr_assign" "', argument " "1"" of type '" "GoSlice *""'"); 
+  }
+  arg1 = reinterpret_cast< GoSlice * >(argp1);
+  {
+    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p_GoSlice,  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GoSlicePtr_assign" "', argument " "2"" of type '" "GoSlice""'"); 
+    }  
+    if (!argp2) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "GoSlicePtr_assign" "', argument " "2"" of type '" "GoSlice""'");
+    } else {
+      arg2 = *(reinterpret_cast< GoSlice * >(argp2));
+    }
+  }
+  GoSlicePtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoSlicePtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice *arg1 = (GoSlice *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  GoSlice result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoSlicePtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoSlicePtr_value" "', argument " "1"" of type '" "GoSlice *""'"); 
+  }
+  arg1 = reinterpret_cast< GoSlice * >(argp1);
+  result = GoSlicePtr_value(arg1);
+  jsresult = SWIG_NewPointerObj((new GoSlice(static_cast< const GoSlice& >(result))), SWIGTYPE_p_GoSlice, SWIG_POINTER_OWN |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_GoUint8Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoUint8_ *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_GoUint8Ptr.");
+  
+  result = (GoUint8_ *)new_GoUint8Ptr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_unsigned_char, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_GoUint8Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoUint8_ arg1 ;
+  unsigned char val1 ;
+  int ecode1 = 0 ;
+  GoUint8_ *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_GoUint8Ptr.");
+  
+  ecode1 = SWIG_AsVal_unsigned_SS_char(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_GoUint8Ptr" "', argument " "1"" of type '" "GoUint8_""'");
+  } 
+  arg1 = static_cast< GoUint8_ >(val1);
+  result = (GoUint8_ *)copy_GoUint8Ptr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_unsigned_char, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_GoUint8Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoUint8_ *arg1 = (GoUint8_ *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_GoUint8Ptr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_char, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_GoUint8Ptr" "', argument " "1"" of type '" "GoUint8_ *""'"); 
+  }
+  arg1 = reinterpret_cast< GoUint8_ * >(argp1);
+  delete_GoUint8Ptr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoUint8Ptr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoUint8_ *arg1 = (GoUint8_ *) 0 ;
+  GoUint8_ arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned char val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoUint8Ptr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_char, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoUint8Ptr_assign" "', argument " "1"" of type '" "GoUint8_ *""'"); 
+  }
+  arg1 = reinterpret_cast< GoUint8_ * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_char(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GoUint8Ptr_assign" "', argument " "2"" of type '" "GoUint8_""'");
+  } 
+  arg2 = static_cast< GoUint8_ >(val2);
+  GoUint8Ptr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoUint8Ptr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoUint8_ *arg1 = (GoUint8_ *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  GoUint8_ result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoUint8Ptr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_char, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoUint8Ptr_value" "', argument " "1"" of type '" "GoUint8_ *""'"); 
+  }
+  arg1 = reinterpret_cast< GoUint8_ * >(argp1);
+  result = (GoUint8_)GoUint8Ptr_value(arg1);
+  jsresult = SWIG_From_unsigned_SS_char(static_cast< unsigned char >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_GoStringPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  _GoString_ *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_GoStringPtr.");
+  
+  result = (_GoString_ *)new_GoStringPtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p__GoString_, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_GoStringPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  _GoString_ arg1 ;
+  void *argp1 ;
+  int res1 = 0 ;
+  _GoString_ *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_GoStringPtr.");
+  
+  {
+    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "copy_GoStringPtr" "', argument " "1"" of type '" "_GoString_""'"); 
+    }  
+    if (!argp1) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "copy_GoStringPtr" "', argument " "1"" of type '" "_GoString_""'");
+    } else {
+      arg1 = *(reinterpret_cast< _GoString_ * >(argp1));
+    }
+  }
+  result = (_GoString_ *)copy_GoStringPtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p__GoString_, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_GoStringPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  _GoString_ *arg1 = (_GoString_ *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_GoStringPtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p__GoString_, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_GoStringPtr" "', argument " "1"" of type '" "_GoString_ *""'"); 
+  }
+  arg1 = reinterpret_cast< _GoString_ * >(argp1);
+  delete_GoStringPtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoStringPtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  _GoString_ *arg1 = (_GoString_ *) 0 ;
+  _GoString_ arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 ;
+  int res2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoStringPtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p__GoString_, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoStringPtr_assign" "', argument " "1"" of type '" "_GoString_ *""'"); 
+  }
+  arg1 = reinterpret_cast< _GoString_ * >(argp1);
+  {
+    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GoStringPtr_assign" "', argument " "2"" of type '" "_GoString_""'"); 
+    }  
+    if (!argp2) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "GoStringPtr_assign" "', argument " "2"" of type '" "_GoString_""'");
+    } else {
+      arg2 = *(reinterpret_cast< _GoString_ * >(argp2));
+    }
+  }
+  GoStringPtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoStringPtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  _GoString_ *arg1 = (_GoString_ *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  _GoString_ result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoStringPtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p__GoString_, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoStringPtr_value" "', argument " "1"" of type '" "_GoString_ *""'"); 
+  }
+  arg1 = reinterpret_cast< _GoString_ * >(argp1);
+  result = GoStringPtr_value(arg1);
+  jsresult = SWIG_NewPointerObj((new _GoString_(static_cast< const _GoString_& >(result))), SWIGTYPE_p__GoString_, SWIG_POINTER_OWN |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_IntPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  int *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_IntPtr.");
+  
+  result = (int *)new_IntPtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_int, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_IntPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  int arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  int *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_IntPtr.");
+  
+  ecode1 = SWIG_AsVal_int(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_IntPtr" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = static_cast< int >(val1);
+  result = (int *)copy_IntPtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_int, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_IntPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  int *arg1 = (int *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_IntPtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_IntPtr" "', argument " "1"" of type '" "int *""'"); 
+  }
+  arg1 = reinterpret_cast< int * >(argp1);
+  delete_IntPtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_IntPtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  int *arg1 = (int *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_IntPtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IntPtr_assign" "', argument " "1"" of type '" "int *""'"); 
+  }
+  arg1 = reinterpret_cast< int * >(argp1);
+  ecode2 = SWIG_AsVal_int(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IntPtr_assign" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  IntPtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_IntPtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  int *arg1 = (int *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_IntPtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IntPtr_value" "', argument " "1"" of type '" "int *""'"); 
+  }
+  arg1 = reinterpret_cast< int * >(argp1);
+  result = (int)IntPtr_value(arg1);
+  jsresult = SWIG_From_int(static_cast< int >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_coin__TransactionPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Transaction *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_coin__TransactionPtr.");
+  
+  result = (coin__Transaction *)new_coin__TransactionPtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_coin__Transaction, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_coin__TransactionPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Transaction arg1 ;
+  void *argp1 ;
+  int res1 = 0 ;
+  coin__Transaction *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_coin__TransactionPtr.");
+  
+  {
+    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p_coin__Transaction,  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "copy_coin__TransactionPtr" "', argument " "1"" of type '" "coin__Transaction""'"); 
+    }  
+    if (!argp1) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "copy_coin__TransactionPtr" "', argument " "1"" of type '" "coin__Transaction""'");
+    } else {
+      arg1 = *(reinterpret_cast< coin__Transaction * >(argp1));
+    }
+  }
+  result = (coin__Transaction *)copy_coin__TransactionPtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_coin__Transaction, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_coin__TransactionPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Transaction *arg1 = (coin__Transaction *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_coin__TransactionPtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_coin__Transaction, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_coin__TransactionPtr" "', argument " "1"" of type '" "coin__Transaction *""'"); 
+  }
+  arg1 = reinterpret_cast< coin__Transaction * >(argp1);
+  delete_coin__TransactionPtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_coin__TransactionPtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Transaction *arg1 = (coin__Transaction *) 0 ;
+  coin__Transaction arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 ;
+  int res2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_coin__TransactionPtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_coin__Transaction, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "coin__TransactionPtr_assign" "', argument " "1"" of type '" "coin__Transaction *""'"); 
+  }
+  arg1 = reinterpret_cast< coin__Transaction * >(argp1);
+  {
+    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p_coin__Transaction,  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "coin__TransactionPtr_assign" "', argument " "2"" of type '" "coin__Transaction""'"); 
+    }  
+    if (!argp2) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "coin__TransactionPtr_assign" "', argument " "2"" of type '" "coin__Transaction""'");
+    } else {
+      arg2 = *(reinterpret_cast< coin__Transaction * >(argp2));
+    }
+  }
+  coin__TransactionPtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_coin__TransactionPtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Transaction *arg1 = (coin__Transaction *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  coin__Transaction result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_coin__TransactionPtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_coin__Transaction, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "coin__TransactionPtr_value" "', argument " "1"" of type '" "coin__Transaction *""'"); 
+  }
+  arg1 = reinterpret_cast< coin__Transaction * >(argp1);
+  result = coin__TransactionPtr_value(arg1);
+  jsresult = SWIG_NewPointerObj((new coin__Transaction(static_cast< const coin__Transaction& >(result))), SWIGTYPE_p_coin__Transaction, SWIG_POINTER_OWN |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_AddressUxOuts__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  AddressUxOuts_Handle *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_AddressUxOuts__HandlePtr.");
+  
+  result = (AddressUxOuts_Handle *)new_AddressUxOuts__HandlePtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_AddressUxOuts__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  AddressUxOuts_Handle arg1 ;
+  long long val1 ;
+  int ecode1 = 0 ;
+  AddressUxOuts_Handle *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_AddressUxOuts__HandlePtr.");
+  
+  ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_AddressUxOuts__HandlePtr" "', argument " "1"" of type '" "AddressUxOuts_Handle""'");
+  } 
+  arg1 = static_cast< AddressUxOuts_Handle >(val1);
+  result = (AddressUxOuts_Handle *)copy_AddressUxOuts__HandlePtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_AddressUxOuts__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  AddressUxOuts_Handle *arg1 = (AddressUxOuts_Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_AddressUxOuts__HandlePtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_AddressUxOuts__HandlePtr" "', argument " "1"" of type '" "AddressUxOuts_Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< AddressUxOuts_Handle * >(argp1);
+  delete_AddressUxOuts__HandlePtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_AddressUxOuts__HandlePtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  AddressUxOuts_Handle *arg1 = (AddressUxOuts_Handle *) 0 ;
+  AddressUxOuts_Handle arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long long val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_AddressUxOuts__HandlePtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "AddressUxOuts__HandlePtr_assign" "', argument " "1"" of type '" "AddressUxOuts_Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< AddressUxOuts_Handle * >(argp1);
+  ecode2 = SWIG_AsVal_long_SS_long(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "AddressUxOuts__HandlePtr_assign" "', argument " "2"" of type '" "AddressUxOuts_Handle""'");
+  } 
+  arg2 = static_cast< AddressUxOuts_Handle >(val2);
+  AddressUxOuts__HandlePtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_AddressUxOuts__HandlePtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  AddressUxOuts_Handle *arg1 = (AddressUxOuts_Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  AddressUxOuts_Handle result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_AddressUxOuts__HandlePtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "AddressUxOuts__HandlePtr_value" "', argument " "1"" of type '" "AddressUxOuts_Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< AddressUxOuts_Handle * >(argp1);
+  result = (AddressUxOuts_Handle)AddressUxOuts__HandlePtr_value(arg1);
+  jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_GoUint64Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned long long *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_GoUint64Ptr.");
+  
+  result = (unsigned long long *)new_GoUint64Ptr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_unsigned_long_long, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_GoUint64Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned long long arg1 ;
+  unsigned long long val1 ;
+  int ecode1 = 0 ;
+  unsigned long long *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_GoUint64Ptr.");
+  
+  ecode1 = SWIG_AsVal_unsigned_SS_long_SS_long(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_GoUint64Ptr" "', argument " "1"" of type '" "unsigned long long""'");
+  } 
+  arg1 = static_cast< unsigned long long >(val1);
+  result = (unsigned long long *)copy_GoUint64Ptr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_unsigned_long_long, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_GoUint64Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned long long *arg1 = (unsigned long long *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_GoUint64Ptr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_GoUint64Ptr" "', argument " "1"" of type '" "unsigned long long *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned long long * >(argp1);
+  delete_GoUint64Ptr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoUint64Ptr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned long long *arg1 = (unsigned long long *) 0 ;
+  unsigned long long arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned long long val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoUint64Ptr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoUint64Ptr_assign" "', argument " "1"" of type '" "unsigned long long *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned long long * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_long_SS_long(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GoUint64Ptr_assign" "', argument " "2"" of type '" "unsigned long long""'");
+  } 
+  arg2 = static_cast< unsigned long long >(val2);
+  GoUint64Ptr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoUint64Ptr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned long long *arg1 = (unsigned long long *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned long long result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoUint64Ptr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoUint64Ptr_value" "', argument " "1"" of type '" "unsigned long long *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned long long * >(argp1);
+  result = (unsigned long long)GoUint64Ptr_value(arg1);
+  jsresult = SWIG_From_unsigned_SS_long_SS_long(static_cast< unsigned long long >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_GointPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  long long *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_GointPtr.");
+  
+  result = (long long *)new_GointPtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_GointPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  long long arg1 ;
+  long long val1 ;
+  int ecode1 = 0 ;
+  long long *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_GointPtr.");
+  
+  ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_GointPtr" "', argument " "1"" of type '" "long long""'");
+  } 
+  arg1 = static_cast< long long >(val1);
+  result = (long long *)copy_GointPtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_GointPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  long long *arg1 = (long long *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_GointPtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_GointPtr" "', argument " "1"" of type '" "long long *""'"); 
+  }
+  arg1 = reinterpret_cast< long long * >(argp1);
+  delete_GointPtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GointPtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  long long *arg1 = (long long *) 0 ;
+  long long arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long long val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GointPtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GointPtr_assign" "', argument " "1"" of type '" "long long *""'"); 
+  }
+  arg1 = reinterpret_cast< long long * >(argp1);
+  ecode2 = SWIG_AsVal_long_SS_long(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GointPtr_assign" "', argument " "2"" of type '" "long long""'");
+  } 
+  arg2 = static_cast< long long >(val2);
+  GointPtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GointPtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  long long *arg1 = (long long *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long long result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GointPtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GointPtr_value" "', argument " "1"" of type '" "long long *""'"); 
+  }
+  arg1 = reinterpret_cast< long long * >(argp1);
+  result = (long long)GointPtr_value(arg1);
+  jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_GoUint16Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned short *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_GoUint16Ptr.");
+  
+  result = (unsigned short *)new_GoUint16Ptr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_unsigned_short, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_GoUint16Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned short arg1 ;
+  unsigned short val1 ;
+  int ecode1 = 0 ;
+  unsigned short *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_GoUint16Ptr.");
+  
+  ecode1 = SWIG_AsVal_unsigned_SS_short(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_GoUint16Ptr" "', argument " "1"" of type '" "unsigned short""'");
+  } 
+  arg1 = static_cast< unsigned short >(val1);
+  result = (unsigned short *)copy_GoUint16Ptr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_unsigned_short, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_GoUint16Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned short *arg1 = (unsigned short *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_GoUint16Ptr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_short, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_GoUint16Ptr" "', argument " "1"" of type '" "unsigned short *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned short * >(argp1);
+  delete_GoUint16Ptr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoUint16Ptr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned short *arg1 = (unsigned short *) 0 ;
+  unsigned short arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned short val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoUint16Ptr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_short, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoUint16Ptr_assign" "', argument " "1"" of type '" "unsigned short *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned short * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_short(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GoUint16Ptr_assign" "', argument " "2"" of type '" "unsigned short""'");
+  } 
+  arg2 = static_cast< unsigned short >(val2);
+  GoUint16Ptr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoUint16Ptr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned short *arg1 = (unsigned short *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned short result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoUint16Ptr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_short, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoUint16Ptr_value" "', argument " "1"" of type '" "unsigned short *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned short * >(argp1);
+  result = (unsigned short)GoUint16Ptr_value(arg1);
+  jsresult = SWIG_From_unsigned_SS_short(static_cast< unsigned short >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_GoUint32Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned int *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_GoUint32Ptr.");
+  
+  result = (unsigned int *)new_GoUint32Ptr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_unsigned_int, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_GoUint32Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned int arg1 ;
+  unsigned int val1 ;
+  int ecode1 = 0 ;
+  unsigned int *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_GoUint32Ptr.");
+  
+  ecode1 = SWIG_AsVal_unsigned_SS_int(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_GoUint32Ptr" "', argument " "1"" of type '" "unsigned int""'");
+  } 
+  arg1 = static_cast< unsigned int >(val1);
+  result = (unsigned int *)copy_GoUint32Ptr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_unsigned_int, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_GoUint32Ptr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned int *arg1 = (unsigned int *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_GoUint32Ptr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_GoUint32Ptr" "', argument " "1"" of type '" "unsigned int *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned int * >(argp1);
+  delete_GoUint32Ptr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoUint32Ptr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned int *arg1 = (unsigned int *) 0 ;
+  unsigned int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoUint32Ptr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoUint32Ptr_assign" "', argument " "1"" of type '" "unsigned int *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned int * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GoUint32Ptr_assign" "', argument " "2"" of type '" "unsigned int""'");
+  } 
+  arg2 = static_cast< unsigned int >(val2);
+  GoUint32Ptr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoUint32Ptr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned int *arg1 = (unsigned int *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoUint32Ptr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoUint32Ptr_value" "', argument " "1"" of type '" "unsigned int *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned int * >(argp1);
+  result = (unsigned int)GoUint32Ptr_value(arg1);
+  jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_cipher__AddressPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  cipher__Address *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_cipher__AddressPtr.");
+  
+  result = (cipher__Address *)new_cipher__AddressPtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_cipher__Address, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_cipher__AddressPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  cipher__Address arg1 ;
+  void *argp1 ;
+  int res1 = 0 ;
+  cipher__Address *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_cipher__AddressPtr.");
+  
+  {
+    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p_cipher__Address,  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "copy_cipher__AddressPtr" "', argument " "1"" of type '" "cipher__Address""'"); 
+    }  
+    if (!argp1) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "copy_cipher__AddressPtr" "', argument " "1"" of type '" "cipher__Address""'");
+    } else {
+      arg1 = *(reinterpret_cast< cipher__Address * >(argp1));
+    }
+  }
+  result = (cipher__Address *)copy_cipher__AddressPtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_cipher__Address, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_cipher__AddressPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  cipher__Address *arg1 = (cipher__Address *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_cipher__AddressPtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_cipher__Address, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_cipher__AddressPtr" "', argument " "1"" of type '" "cipher__Address *""'"); 
+  }
+  arg1 = reinterpret_cast< cipher__Address * >(argp1);
+  delete_cipher__AddressPtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_cipher__AddressPtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  cipher__Address *arg1 = (cipher__Address *) 0 ;
+  cipher__Address arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 ;
+  int res2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_cipher__AddressPtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_cipher__Address, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cipher__AddressPtr_assign" "', argument " "1"" of type '" "cipher__Address *""'"); 
+  }
+  arg1 = reinterpret_cast< cipher__Address * >(argp1);
+  {
+    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p_cipher__Address,  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cipher__AddressPtr_assign" "', argument " "2"" of type '" "cipher__Address""'"); 
+    }  
+    if (!argp2) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "cipher__AddressPtr_assign" "', argument " "2"" of type '" "cipher__Address""'");
+    } else {
+      arg2 = *(reinterpret_cast< cipher__Address * >(argp2));
+    }
+  }
+  cipher__AddressPtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_cipher__AddressPtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  cipher__Address *arg1 = (cipher__Address *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  cipher__Address result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_cipher__AddressPtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_cipher__Address, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cipher__AddressPtr_value" "', argument " "1"" of type '" "cipher__Address *""'"); 
+  }
+  arg1 = reinterpret_cast< cipher__Address * >(argp1);
+  result = cipher__AddressPtr_value(arg1);
+  jsresult = SWIG_NewPointerObj((new cipher__Address(static_cast< const cipher__Address& >(result))), SWIGTYPE_p_cipher__Address, SWIG_POINTER_OWN |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_Transactions__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Transactions__Handle *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_Transactions__HandlePtr.");
+  
+  result = (Transactions__Handle *)new_Transactions__HandlePtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_Transactions__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Transactions__Handle arg1 ;
+  long long val1 ;
+  int ecode1 = 0 ;
+  Transactions__Handle *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_Transactions__HandlePtr.");
+  
+  ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_Transactions__HandlePtr" "', argument " "1"" of type '" "Transactions__Handle""'");
+  } 
+  arg1 = static_cast< Transactions__Handle >(val1);
+  result = (Transactions__Handle *)copy_Transactions__HandlePtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_Transactions__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Transactions__Handle *arg1 = (Transactions__Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_Transactions__HandlePtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Transactions__HandlePtr" "', argument " "1"" of type '" "Transactions__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Transactions__Handle * >(argp1);
+  delete_Transactions__HandlePtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_Transactions__HandlePtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Transactions__Handle *arg1 = (Transactions__Handle *) 0 ;
+  Transactions__Handle arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long long val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Transactions__HandlePtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Transactions__HandlePtr_assign" "', argument " "1"" of type '" "Transactions__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Transactions__Handle * >(argp1);
+  ecode2 = SWIG_AsVal_long_SS_long(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Transactions__HandlePtr_assign" "', argument " "2"" of type '" "Transactions__Handle""'");
+  } 
+  arg2 = static_cast< Transactions__Handle >(val2);
+  Transactions__HandlePtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_Transactions__HandlePtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Transactions__Handle *arg1 = (Transactions__Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  Transactions__Handle result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Transactions__HandlePtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Transactions__HandlePtr_value" "', argument " "1"" of type '" "Transactions__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Transactions__Handle * >(argp1);
+  result = (Transactions__Handle)Transactions__HandlePtr_value(arg1);
+  jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_Transaction__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Transaction__Handle *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_Transaction__HandlePtr.");
+  
+  result = (Transaction__Handle *)new_Transaction__HandlePtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_Transaction__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Transaction__Handle arg1 ;
+  long long val1 ;
+  int ecode1 = 0 ;
+  Transaction__Handle *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_Transaction__HandlePtr.");
+  
+  ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_Transaction__HandlePtr" "', argument " "1"" of type '" "Transaction__Handle""'");
+  } 
+  arg1 = static_cast< Transaction__Handle >(val1);
+  result = (Transaction__Handle *)copy_Transaction__HandlePtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_Transaction__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Transaction__Handle *arg1 = (Transaction__Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_Transaction__HandlePtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Transaction__HandlePtr" "', argument " "1"" of type '" "Transaction__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Transaction__Handle * >(argp1);
+  delete_Transaction__HandlePtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_Transaction__HandlePtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Transaction__Handle *arg1 = (Transaction__Handle *) 0 ;
+  Transaction__Handle arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long long val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Transaction__HandlePtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Transaction__HandlePtr_assign" "', argument " "1"" of type '" "Transaction__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Transaction__Handle * >(argp1);
+  ecode2 = SWIG_AsVal_long_SS_long(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Transaction__HandlePtr_assign" "', argument " "2"" of type '" "Transaction__Handle""'");
+  } 
+  arg2 = static_cast< Transaction__Handle >(val2);
+  Transaction__HandlePtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_Transaction__HandlePtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Transaction__Handle *arg1 = (Transaction__Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  Transaction__Handle result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Transaction__HandlePtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Transaction__HandlePtr_value" "', argument " "1"" of type '" "Transaction__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Transaction__Handle * >(argp1);
+  result = (Transaction__Handle)Transaction__HandlePtr_value(arg1);
+  jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_Block__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Block__Handle *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_Block__HandlePtr.");
+  
+  result = (Block__Handle *)new_Block__HandlePtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_Block__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Block__Handle arg1 ;
+  long long val1 ;
+  int ecode1 = 0 ;
+  Block__Handle *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_Block__HandlePtr.");
+  
+  ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_Block__HandlePtr" "', argument " "1"" of type '" "Block__Handle""'");
+  } 
+  arg1 = static_cast< Block__Handle >(val1);
+  result = (Block__Handle *)copy_Block__HandlePtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_Block__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Block__Handle *arg1 = (Block__Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_Block__HandlePtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Block__HandlePtr" "', argument " "1"" of type '" "Block__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Block__Handle * >(argp1);
+  delete_Block__HandlePtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_Block__HandlePtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Block__Handle *arg1 = (Block__Handle *) 0 ;
+  Block__Handle arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long long val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Block__HandlePtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Block__HandlePtr_assign" "', argument " "1"" of type '" "Block__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Block__Handle * >(argp1);
+  ecode2 = SWIG_AsVal_long_SS_long(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Block__HandlePtr_assign" "', argument " "2"" of type '" "Block__Handle""'");
+  } 
+  arg2 = static_cast< Block__Handle >(val2);
+  Block__HandlePtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_Block__HandlePtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Block__Handle *arg1 = (Block__Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  Block__Handle result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Block__HandlePtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Block__HandlePtr_value" "', argument " "1"" of type '" "Block__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Block__Handle * >(argp1);
+  result = (Block__Handle)Block__HandlePtr_value(arg1);
+  jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_BlockHeader__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  BlockHeader__Handle *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_BlockHeader__HandlePtr.");
+  
+  result = (BlockHeader__Handle *)new_BlockHeader__HandlePtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_BlockHeader__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  BlockHeader__Handle arg1 ;
+  long long val1 ;
+  int ecode1 = 0 ;
+  BlockHeader__Handle *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_BlockHeader__HandlePtr.");
+  
+  ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_BlockHeader__HandlePtr" "', argument " "1"" of type '" "BlockHeader__Handle""'");
+  } 
+  arg1 = static_cast< BlockHeader__Handle >(val1);
+  result = (BlockHeader__Handle *)copy_BlockHeader__HandlePtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_BlockHeader__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  BlockHeader__Handle *arg1 = (BlockHeader__Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_BlockHeader__HandlePtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_BlockHeader__HandlePtr" "', argument " "1"" of type '" "BlockHeader__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< BlockHeader__Handle * >(argp1);
+  delete_BlockHeader__HandlePtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_BlockHeader__HandlePtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  BlockHeader__Handle *arg1 = (BlockHeader__Handle *) 0 ;
+  BlockHeader__Handle arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long long val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_BlockHeader__HandlePtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "BlockHeader__HandlePtr_assign" "', argument " "1"" of type '" "BlockHeader__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< BlockHeader__Handle * >(argp1);
+  ecode2 = SWIG_AsVal_long_SS_long(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "BlockHeader__HandlePtr_assign" "', argument " "2"" of type '" "BlockHeader__Handle""'");
+  } 
+  arg2 = static_cast< BlockHeader__Handle >(val2);
+  BlockHeader__HandlePtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_BlockHeader__HandlePtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  BlockHeader__Handle *arg1 = (BlockHeader__Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  BlockHeader__Handle result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_BlockHeader__HandlePtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "BlockHeader__HandlePtr_value" "', argument " "1"" of type '" "BlockHeader__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< BlockHeader__Handle * >(argp1);
+  result = (BlockHeader__Handle)BlockHeader__HandlePtr_value(arg1);
+  jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_BlockBody__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  BlockBody__Handle *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_BlockBody__HandlePtr.");
+  
+  result = (BlockBody__Handle *)new_BlockBody__HandlePtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_BlockBody__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  BlockBody__Handle arg1 ;
+  long long val1 ;
+  int ecode1 = 0 ;
+  BlockBody__Handle *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_BlockBody__HandlePtr.");
+  
+  ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_BlockBody__HandlePtr" "', argument " "1"" of type '" "BlockBody__Handle""'");
+  } 
+  arg1 = static_cast< BlockBody__Handle >(val1);
+  result = (BlockBody__Handle *)copy_BlockBody__HandlePtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_BlockBody__HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  BlockBody__Handle *arg1 = (BlockBody__Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_BlockBody__HandlePtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_BlockBody__HandlePtr" "', argument " "1"" of type '" "BlockBody__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< BlockBody__Handle * >(argp1);
+  delete_BlockBody__HandlePtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_BlockBody__HandlePtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  BlockBody__Handle *arg1 = (BlockBody__Handle *) 0 ;
+  BlockBody__Handle arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long long val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_BlockBody__HandlePtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "BlockBody__HandlePtr_assign" "', argument " "1"" of type '" "BlockBody__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< BlockBody__Handle * >(argp1);
+  ecode2 = SWIG_AsVal_long_SS_long(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "BlockBody__HandlePtr_assign" "', argument " "2"" of type '" "BlockBody__Handle""'");
+  } 
+  arg2 = static_cast< BlockBody__Handle >(val2);
+  BlockBody__HandlePtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_BlockBody__HandlePtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  BlockBody__Handle *arg1 = (BlockBody__Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  BlockBody__Handle result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_BlockBody__HandlePtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "BlockBody__HandlePtr_value" "', argument " "1"" of type '" "BlockBody__Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< BlockBody__Handle * >(argp1);
+  result = (BlockBody__Handle)BlockBody__HandlePtr_value(arg1);
+  jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_Signature_HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Signature_Handle *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_Signature_HandlePtr.");
+  
+  result = (Signature_Handle *)new_Signature_HandlePtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_Signature_HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Signature_Handle arg1 ;
+  long long val1 ;
+  int ecode1 = 0 ;
+  Signature_Handle *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_Signature_HandlePtr.");
+  
+  ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_Signature_HandlePtr" "', argument " "1"" of type '" "Signature_Handle""'");
+  } 
+  arg1 = static_cast< Signature_Handle >(val1);
+  result = (Signature_Handle *)copy_Signature_HandlePtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_Signature_HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Signature_Handle *arg1 = (Signature_Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_Signature_HandlePtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Signature_HandlePtr" "', argument " "1"" of type '" "Signature_Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Signature_Handle * >(argp1);
+  delete_Signature_HandlePtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_Signature_HandlePtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Signature_Handle *arg1 = (Signature_Handle *) 0 ;
+  Signature_Handle arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long long val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Signature_HandlePtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Signature_HandlePtr_assign" "', argument " "1"" of type '" "Signature_Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Signature_Handle * >(argp1);
+  ecode2 = SWIG_AsVal_long_SS_long(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Signature_HandlePtr_assign" "', argument " "2"" of type '" "Signature_Handle""'");
+  } 
+  arg2 = static_cast< Signature_Handle >(val2);
+  Signature_HandlePtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_Signature_HandlePtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Signature_Handle *arg1 = (Signature_Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  Signature_Handle result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Signature_HandlePtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Signature_HandlePtr_value" "', argument " "1"" of type '" "Signature_Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Signature_Handle * >(argp1);
+  result = (Signature_Handle)Signature_HandlePtr_value(arg1);
+  jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_Number_HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Number_Handle *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_Number_HandlePtr.");
+  
+  result = (Number_Handle *)new_Number_HandlePtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_Number_HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Number_Handle arg1 ;
+  long long val1 ;
+  int ecode1 = 0 ;
+  Number_Handle *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_Number_HandlePtr.");
+  
+  ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_Number_HandlePtr" "', argument " "1"" of type '" "Number_Handle""'");
+  } 
+  arg1 = static_cast< Number_Handle >(val1);
+  result = (Number_Handle *)copy_Number_HandlePtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long_long, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_Number_HandlePtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Number_Handle *arg1 = (Number_Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_Number_HandlePtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Number_HandlePtr" "', argument " "1"" of type '" "Number_Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Number_Handle * >(argp1);
+  delete_Number_HandlePtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_Number_HandlePtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Number_Handle *arg1 = (Number_Handle *) 0 ;
+  Number_Handle arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long long val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Number_HandlePtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Number_HandlePtr_assign" "', argument " "1"" of type '" "Number_Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Number_Handle * >(argp1);
+  ecode2 = SWIG_AsVal_long_SS_long(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Number_HandlePtr_assign" "', argument " "2"" of type '" "Number_Handle""'");
+  } 
+  arg2 = static_cast< Number_Handle >(val2);
+  Number_HandlePtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_Number_HandlePtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Number_Handle *arg1 = (Number_Handle *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  Number_Handle result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Number_HandlePtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Number_HandlePtr_value" "', argument " "1"" of type '" "Number_Handle *""'"); 
+  }
+  arg1 = reinterpret_cast< Number_Handle * >(argp1);
+  result = (Number_Handle)Number_HandlePtr_value(arg1);
+  jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_CharPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned char *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_CharPtr.");
+  
+  result = (unsigned char *)new_CharPtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_unsigned_char, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_CharPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned char arg1 ;
+  unsigned char val1 ;
+  int ecode1 = 0 ;
+  unsigned char *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_CharPtr.");
+  
+  ecode1 = SWIG_AsVal_unsigned_SS_char(args[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "copy_CharPtr" "', argument " "1"" of type '" "unsigned char""'");
+  } 
+  arg1 = static_cast< unsigned char >(val1);
+  result = (unsigned char *)copy_CharPtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_unsigned_char, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_CharPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned char *arg1 = (unsigned char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_CharPtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_char, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_CharPtr" "', argument " "1"" of type '" "unsigned char *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned char * >(argp1);
+  delete_CharPtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_CharPtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned char *arg1 = (unsigned char *) 0 ;
+  unsigned char arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned char val2 ;
+  int ecode2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_CharPtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_char, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CharPtr_assign" "', argument " "1"" of type '" "unsigned char *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned char * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_char(args[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "CharPtr_assign" "', argument " "2"" of type '" "unsigned char""'");
+  } 
+  arg2 = static_cast< unsigned char >(val2);
+  CharPtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_CharPtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  unsigned char *arg1 = (unsigned char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned char result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_CharPtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_unsigned_char, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CharPtr_value" "', argument " "1"" of type '" "unsigned char *""'"); 
+  }
+  arg1 = reinterpret_cast< unsigned char * >(argp1);
+  result = (unsigned char)CharPtr_value(arg1);
+  jsresult = SWIG_From_unsigned_SS_char(static_cast< unsigned char >(result));
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_FeeCalculatorPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  FeeCalculator *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_FeeCalculatorPtr.");
+  
+  result = (FeeCalculator *)new_FeeCalculatorPtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_FeeCalculator, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_FeeCalculatorPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  FeeCalculator arg1 ;
+  void *argp1 ;
+  int res1 = 0 ;
+  FeeCalculator *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_FeeCalculatorPtr.");
+  
+  {
+    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p_FeeCalculator,  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "copy_FeeCalculatorPtr" "', argument " "1"" of type '" "FeeCalculator""'"); 
+    }  
+    if (!argp1) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "copy_FeeCalculatorPtr" "', argument " "1"" of type '" "FeeCalculator""'");
+    } else {
+      arg1 = *(reinterpret_cast< FeeCalculator * >(argp1));
+    }
+  }
+  result = (FeeCalculator *)copy_FeeCalculatorPtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_FeeCalculator, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_FeeCalculatorPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  FeeCalculator *arg1 = (FeeCalculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_FeeCalculatorPtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_FeeCalculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_FeeCalculatorPtr" "', argument " "1"" of type '" "FeeCalculator *""'"); 
+  }
+  arg1 = reinterpret_cast< FeeCalculator * >(argp1);
+  delete_FeeCalculatorPtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_FeeCalculatorPtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  FeeCalculator *arg1 = (FeeCalculator *) 0 ;
+  FeeCalculator arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 ;
+  int res2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_FeeCalculatorPtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_FeeCalculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeeCalculatorPtr_assign" "', argument " "1"" of type '" "FeeCalculator *""'"); 
+  }
+  arg1 = reinterpret_cast< FeeCalculator * >(argp1);
+  {
+    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p_FeeCalculator,  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "FeeCalculatorPtr_assign" "', argument " "2"" of type '" "FeeCalculator""'"); 
+    }  
+    if (!argp2) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "FeeCalculatorPtr_assign" "', argument " "2"" of type '" "FeeCalculator""'");
+    } else {
+      arg2 = *(reinterpret_cast< FeeCalculator * >(argp2));
+    }
+  }
+  FeeCalculatorPtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_FeeCalculatorPtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  FeeCalculator *arg1 = (FeeCalculator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  FeeCalculator result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_FeeCalculatorPtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_FeeCalculator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeeCalculatorPtr_value" "', argument " "1"" of type '" "FeeCalculator *""'"); 
+  }
+  arg1 = reinterpret_cast< FeeCalculator * >(argp1);
+  result = FeeCalculatorPtr_value(arg1);
+  jsresult = SWIG_NewPointerObj((new FeeCalculator(static_cast< const FeeCalculator& >(result))), SWIGTYPE_p_FeeCalculator, SWIG_POINTER_OWN |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_FeeCalcFuncPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  FeeCalcFunc *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_FeeCalcFuncPtr.");
+  
+  result = (FeeCalcFunc *)new_FeeCalcFuncPtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_FeeCalcFuncPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  FeeCalcFunc arg1 = (FeeCalcFunc) 0 ;
+  FeeCalcFunc *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_FeeCalcFuncPtr.");
+  
+  {
+    int res = SWIG_ConvertFunctionPtr(args[0], (void**)(&arg1), SWIGTYPE_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int);
+    if (!SWIG_IsOK(res)) {
+      SWIG_exception_fail(SWIG_ArgError(res), "in method '" "copy_FeeCalcFuncPtr" "', argument " "1"" of type '" "FeeCalcFunc""'"); 
+    }
+  }
+  result = (FeeCalcFunc *)copy_FeeCalcFuncPtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_FeeCalcFuncPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  FeeCalcFunc *arg1 = (FeeCalcFunc *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_FeeCalcFuncPtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_FeeCalcFuncPtr" "', argument " "1"" of type '" "FeeCalcFunc *""'"); 
+  }
+  arg1 = reinterpret_cast< FeeCalcFunc * >(argp1);
+  delete_FeeCalcFuncPtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_FeeCalcFuncPtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  FeeCalcFunc *arg1 = (FeeCalcFunc *) 0 ;
+  FeeCalcFunc arg2 = (FeeCalcFunc) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_FeeCalcFuncPtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeeCalcFuncPtr_assign" "', argument " "1"" of type '" "FeeCalcFunc *""'"); 
+  }
+  arg1 = reinterpret_cast< FeeCalcFunc * >(argp1);
+  {
+    int res = SWIG_ConvertFunctionPtr(args[1], (void**)(&arg2), SWIGTYPE_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int);
+    if (!SWIG_IsOK(res)) {
+      SWIG_exception_fail(SWIG_ArgError(res), "in method '" "FeeCalcFuncPtr_assign" "', argument " "2"" of type '" "FeeCalcFunc""'"); 
+    }
+  }
+  FeeCalcFuncPtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_FeeCalcFuncPtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  FeeCalcFunc *arg1 = (FeeCalcFunc *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  FeeCalcFunc result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_FeeCalcFuncPtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeeCalcFuncPtr_value" "', argument " "1"" of type '" "FeeCalcFunc *""'"); 
+  }
+  arg1 = reinterpret_cast< FeeCalcFunc * >(argp1);
+  result = (FeeCalcFunc)FeeCalcFuncPtr_value(arg1);
+  jsresult = SWIG_NewFunctionPtrObj((void *)(result), SWIGTYPE_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int);
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_coin__BlockPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Block **result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_coin__BlockPtr.");
+  
+  result = (coin__Block **)new_coin__BlockPtr();
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_p_coin__Block, 0 |  0 );
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_copy_coin__BlockPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Block *arg1 = (coin__Block *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  coin__Block **result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_copy_coin__BlockPtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_coin__Block, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "copy_coin__BlockPtr" "', argument " "1"" of type '" "coin__Block *""'"); 
+  }
+  arg1 = reinterpret_cast< coin__Block * >(argp1);
+  result = (coin__Block **)copy_coin__BlockPtr(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_p_coin__Block, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_delete_coin__BlockPtr(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Block **arg1 = (coin__Block **) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_delete_coin__BlockPtr.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_p_coin__Block, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_coin__BlockPtr" "', argument " "1"" of type '" "coin__Block **""'"); 
+  }
+  arg1 = reinterpret_cast< coin__Block ** >(argp1);
+  delete_coin__BlockPtr(arg1);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_coin__BlockPtr_assign(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Block **arg1 = (coin__Block **) 0 ;
+  coin__Block *arg2 = (coin__Block *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_coin__BlockPtr_assign.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_p_coin__Block, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "coin__BlockPtr_assign" "', argument " "1"" of type '" "coin__Block **""'"); 
+  }
+  arg1 = reinterpret_cast< coin__Block ** >(argp1);
+  res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_coin__Block, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "coin__BlockPtr_assign" "', argument " "2"" of type '" "coin__Block *""'"); 
+  }
+  arg2 = reinterpret_cast< coin__Block * >(argp2);
+  coin__BlockPtr_assign(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_coin__BlockPtr_value(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  coin__Block **arg1 = (coin__Block **) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  coin__Block *result = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_coin__BlockPtr_value.");
+  
+  res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_p_coin__Block, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "coin__BlockPtr_value" "', argument " "1"" of type '" "coin__Block **""'"); 
+  }
+  arg1 = reinterpret_cast< coin__Block ** >(argp1);
+  result = (coin__Block *)coin__BlockPtr_value(arg1);
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_coin__Block, 0 |  0 );
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
 
 
 #if (V8_MAJOR_VERSION-0) < 5
@@ -4025,6 +7847,109 @@ static void _wrap_delete_Fee_Calculator(v8::Persistent<v8::Value> object, void *
         }
 
 
+static SwigV8ReturnValue _wrap__GoString__SetString(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  _GoString_ *arg1 = (_GoString_ *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap__GoString__SetString.");
+  
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p__GoString_, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "_GoString__SetString" "', argument " "1"" of type '" "_GoString_ *""'"); 
+  }
+  arg1 = reinterpret_cast< _GoString_ * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(args[0], &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "_GoString__SetString" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  result = (int)_GoString__SetString(arg1,arg2);
+  jsresult = SWIG_From_int(static_cast< int >(result));
+  
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap__GoString__getString(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  _GoString_ *arg1 = (_GoString_ *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  char *result = 0 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap__GoString__getString.");
+  
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p__GoString_, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "_GoString__getString" "', argument " "1"" of type '" "_GoString_ *""'"); 
+  }
+  arg1 = reinterpret_cast< _GoString_ * >(argp1);
+  result = (char *)_GoString__getString(arg1);
+  jsresult = SWIG_FromCharPtr((const char *)result);
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap__GoString__isEqual(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  _GoString_ *arg1 = (_GoString_ *) 0 ;
+  _GoString_ *arg2 = (_GoString_ *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  int result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap__GoString__isEqual.");
+  
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p__GoString_, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "_GoString__isEqual" "', argument " "1"" of type '" "_GoString_ *""'"); 
+  }
+  arg1 = reinterpret_cast< _GoString_ * >(argp1);
+  res2 = SWIG_ConvertPtr(args[0], &argp2,SWIGTYPE_p__GoString_, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "_GoString__isEqual" "', argument " "2"" of type '" "_GoString_ *""'"); 
+  }
+  arg2 = reinterpret_cast< _GoString_ * >(argp2);
+  result = (int)_GoString__isEqual(arg1,arg2);
+  jsresult = SWIG_From_int(static_cast< int >(result));
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
 #if (V8_MAJOR_VERSION-0) < 5
 static void _wrap__GoString__p_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const SwigV8PropertyCallbackInfoVoid &info) {
 #else
@@ -4106,7 +8031,7 @@ static void _wrap__GoString__n_set(v8::Local<v8::String> property, v8::Local<v8:
     ptrdiff_t arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    ptrdiff_t val2 ;
+    long val2 ;
     int ecode2 = 0 ;
     
     res1 = SWIG_ConvertPtr(info.Holder(), &argp1,SWIGTYPE_p__GoString_, 0 |  0 );
@@ -4114,7 +8039,7 @@ static void _wrap__GoString__n_set(v8::Local<v8::String> property, v8::Local<v8:
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "_GoString__n_set" "', argument " "1"" of type '" "_GoString_ *""'"); 
     }
     arg1 = reinterpret_cast< _GoString_ * >(argp1);
-    ecode2 = SWIG_AsVal_ptrdiff_t(value, &val2);
+    ecode2 = SWIG_AsVal_long(value, &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "_GoString__n_set" "', argument " "2"" of type '" "ptrdiff_t""'");
     } 
@@ -4148,7 +8073,7 @@ static SwigV8ReturnValue _wrap__GoString__n_get(v8::Local<v8::String> property, 
     }
     arg1 = reinterpret_cast< _GoString_ * >(argp1);
     result =  ((arg1)->n);
-    jsresult = SWIG_From_ptrdiff_t(static_cast< ptrdiff_t >(result));
+    jsresult = SWIG_From_long(static_cast< long >(result));
     
     
     SWIGV8_RETURN_INFO(jsresult, info);
@@ -4393,6 +8318,204 @@ static void _wrap_delete_GoInterface(v8::Persistent<v8::Value> object, void *par
           object.Clear();
 #endif
         }
+
+
+static SwigV8ReturnValue _wrap_GoSlice_isEqual(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice *arg1 = (GoSlice *) 0 ;
+  GoSlice *arg2 = (GoSlice *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  int result;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoSlice_isEqual.");
+  
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoSlice_isEqual" "', argument " "1"" of type '" "GoSlice *""'"); 
+  }
+  arg1 = reinterpret_cast< GoSlice * >(argp1);
+  res2 = SWIG_ConvertPtr(args[0], &argp2,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GoSlice_isEqual" "', argument " "2"" of type '" "GoSlice *""'"); 
+  }
+  arg2 = reinterpret_cast< GoSlice * >(argp2);
+  result = (int)GoSlice_isEqual(arg1,arg2);
+  jsresult = SWIG_From_int(static_cast< int >(result));
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoSlice_convertString(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice *arg1 = (GoSlice *) 0 ;
+  _GoString_ arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  GoString temp2 ;
+  
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoSlice_convertString.");
+  
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoSlice_convertString" "', argument " "1"" of type '" "GoSlice *""'"); 
+  }
+  arg1 = reinterpret_cast< GoSlice * >(argp1);
+  {
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (_GoString_)temp2;
+  }
+  GoSlice_convertString(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoSlice_setAtChar(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice *arg1 = (GoSlice *) 0 ;
+  char arg2 ;
+  long long arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  char val2 ;
+  int ecode2 = 0 ;
+  long long val3 ;
+  int ecode3 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoSlice_setAtChar.");
+  
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoSlice_setAtChar" "', argument " "1"" of type '" "GoSlice *""'"); 
+  }
+  arg1 = reinterpret_cast< GoSlice * >(argp1);
+  ecode2 = SWIG_AsVal_char(args[0], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GoSlice_setAtChar" "', argument " "2"" of type '" "char""'");
+  } 
+  arg2 = static_cast< char >(val2);
+  ecode3 = SWIG_AsVal_long_SS_long(args[1], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GoSlice_setAtChar" "', argument " "3"" of type '" "long long""'");
+  } 
+  arg3 = static_cast< long long >(val3);
+  GoSlice_setAtChar(arg1,arg2,arg3);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoSlice_getString(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice *arg1 = (GoSlice *) 0 ;
+  _GoString_ *arg2 = (_GoString_ *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoSlice_getString.");
+  
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoSlice_getString" "', argument " "1"" of type '" "GoSlice *""'"); 
+  }
+  arg1 = reinterpret_cast< GoSlice * >(argp1);
+  res2 = SWIG_ConvertPtr(args[0], &argp2,SWIGTYPE_p__GoString_, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GoSlice_getString" "', argument " "2"" of type '" "_GoString_ *""'"); 
+  }
+  arg2 = reinterpret_cast< _GoString_ * >(argp2);
+  GoSlice_getString(arg1,arg2);
+  jsresult = SWIGV8_UNDEFINED();
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_GoSlice_getAtString(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  GoSlice *arg1 = (GoSlice *) 0 ;
+  int arg2 ;
+  _GoString_ *arg3 = (_GoString_ *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  int result;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_GoSlice_getAtString.");
+  
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_GoSlice, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoSlice_getAtString" "', argument " "1"" of type '" "GoSlice *""'"); 
+  }
+  arg1 = reinterpret_cast< GoSlice * >(argp1);
+  ecode2 = SWIG_AsVal_int(args[0], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GoSlice_getAtString" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  res3 = SWIG_ConvertPtr(args[1], &argp3,SWIGTYPE_p__GoString_, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GoSlice_getAtString" "', argument " "3"" of type '" "_GoString_ *""'"); 
+  }
+  arg3 = reinterpret_cast< _GoString_ * >(argp3);
+  result = (int)GoSlice_getAtString(arg1,arg2,arg3);
+  jsresult = SWIG_From_int(static_cast< int >(result));
+  
+  
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
 
 
 #if (V8_MAJOR_VERSION-0) < 5
@@ -6473,11 +10596,10 @@ static SwigV8ReturnValue _wrap_SKY_cli_AddPrivateKey(const SwigV8Arguments &args
   GoString arg2 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_AddPrivateKey.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_AddPrivateKey.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -6485,15 +10607,9 @@ static SwigV8ReturnValue _wrap_SKY_cli_AddPrivateKey(const SwigV8Arguments &args
   } 
   arg1 = static_cast< Wallet__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_cli_AddPrivateKey" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cli_AddPrivateKey" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   result = (GoUint32)SKY_cli_AddPrivateKey(arg1,arg2);
   jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
@@ -6514,37 +10630,23 @@ static SwigV8ReturnValue _wrap_SKY_cli_AddPrivateKeyToFile(const SwigV8Arguments
   GoString arg1 ;
   GoString arg2 ;
   PasswordReader__Handle arg3 ;
-  void *argp1 ;
-  int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp1 ;
+  GoString temp2 ;
   long long val3 ;
   int ecode3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_AddPrivateKeyToFile.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_AddPrivateKeyToFile.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cli_AddPrivateKeyToFile" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cli_AddPrivateKeyToFile" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_cli_AddPrivateKeyToFile" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cli_AddPrivateKeyToFile" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   ecode3 = SWIG_AsVal_long_SS_long(args[2], &val3);
   if (!SWIG_IsOK(ecode3)) {
@@ -6575,58 +10677,35 @@ static SwigV8ReturnValue _wrap_SKY_wallet_CreateOptionsHandle(const SwigV8Argume
   GoString arg6 ;
   GoUint64 arg7 ;
   Options__Handle *arg8 = (Options__Handle *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  GoString temp1 ;
+  GoString temp2 ;
+  GoString temp3 ;
   unsigned char val4 ;
   int ecode4 = 0 ;
-  void *argp5 ;
-  int res5 = 0 ;
-  void *argp6 ;
-  int res6 = 0 ;
+  GoString temp5 ;
+  GoString temp6 ;
   unsigned long long val7 ;
   int ecode7 = 0 ;
   void *argp8 = 0 ;
   int res8 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 8) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_CreateOptionsHandle.");
+  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_CreateOptionsHandle.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_wallet_CreateOptionsHandle" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_CreateOptionsHandle" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_wallet_CreateOptionsHandle" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_CreateOptionsHandle" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   {
-    res3 = SWIG_ConvertPtr(args[2], &argp3, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SKY_wallet_CreateOptionsHandle" "', argument " "3"" of type '" "GoString""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_CreateOptionsHandle" "', argument " "3"" of type '" "GoString""'");
-    } else {
-      arg3 = *(reinterpret_cast< GoString * >(argp3));
-    }
+    temp3.p = NULL;
+    temp3.n = 0;
+    arg3 = (GoString)temp3;
   }
   ecode4 = SWIG_AsVal_unsigned_SS_char(args[3], &val4);
   if (!SWIG_IsOK(ecode4)) {
@@ -6634,26 +10713,14 @@ static SwigV8ReturnValue _wrap_SKY_wallet_CreateOptionsHandle(const SwigV8Argume
   } 
   arg4 = static_cast< GoUint8 >(val4);
   {
-    res5 = SWIG_ConvertPtr(args[4], &argp5, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res5)) {
-      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "SKY_wallet_CreateOptionsHandle" "', argument " "5"" of type '" "GoString""'"); 
-    }  
-    if (!argp5) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_CreateOptionsHandle" "', argument " "5"" of type '" "GoString""'");
-    } else {
-      arg5 = *(reinterpret_cast< GoString * >(argp5));
-    }
+    temp5.p = NULL;
+    temp5.n = 0;
+    arg5 = (GoString)temp5;
   }
   {
-    res6 = SWIG_ConvertPtr(args[5], &argp6, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res6)) {
-      SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "SKY_wallet_CreateOptionsHandle" "', argument " "6"" of type '" "GoString""'"); 
-    }  
-    if (!argp6) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_CreateOptionsHandle" "', argument " "6"" of type '" "GoString""'");
-    } else {
-      arg6 = *(reinterpret_cast< GoString * >(argp6));
-    }
+    temp6.p = NULL;
+    temp6.n = 0;
+    arg6 = (GoString)temp6;
   }
   ecode7 = SWIG_AsVal_unsigned_SS_long_SS_long(args[6], &val7);
   if (!SWIG_IsOK(ecode7)) {
@@ -6900,24 +10967,17 @@ static SwigV8ReturnValue _wrap_SKY_cli_Getenv(const SwigV8Arguments &args) {
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   GoString_ *arg2 = (GoString_ *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_Getenv.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_Getenv.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cli_Getenv" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cli_Getenv" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_GoString_, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -6942,35 +11002,21 @@ static SwigV8ReturnValue _wrap_SKY_cli_Setenv(const SwigV8Arguments &args) {
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   GoString arg2 ;
-  void *argp1 ;
-  int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp1 ;
+  GoString temp2 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_Setenv.");
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_Setenv.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cli_Setenv" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cli_Setenv" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_cli_Setenv" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cli_Setenv" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   result = (GoUint32)SKY_cli_Setenv(arg1,arg2);
   jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
@@ -7259,10 +11305,8 @@ static SwigV8ReturnValue _wrap_SKY_certutil_NewTLSCertPair(const SwigV8Arguments
   GoSlice arg3 ;
   coin__UxArray *arg4 = (coin__UxArray *) 0 ;
   coin__UxArray *arg5 = (coin__UxArray *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp1 ;
+  GoString temp2 ;
   void *argp3 ;
   int res3 = 0 ;
   void *argp4 = 0 ;
@@ -7271,29 +11315,17 @@ static SwigV8ReturnValue _wrap_SKY_certutil_NewTLSCertPair(const SwigV8Arguments
   int res5 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 5) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_certutil_NewTLSCertPair.");
+  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_certutil_NewTLSCertPair.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_certutil_NewTLSCertPair" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_certutil_NewTLSCertPair" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_certutil_NewTLSCertPair" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_certutil_NewTLSCertPair" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   {
     res3 = SWIG_ConvertPtr(args[2], &argp3, SWIGTYPE_p_GoSlice,  0 );
@@ -7335,24 +11367,17 @@ static SwigV8ReturnValue _wrap_SKY_cipher_DecodeBase58BitcoinAddress(const SwigV
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   cipher__BitcoinAddress *arg2 = (cipher__BitcoinAddress *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_DecodeBase58BitcoinAddress.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_DecodeBase58BitcoinAddress.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cipher_DecodeBase58BitcoinAddress" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cipher_DecodeBase58BitcoinAddress" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_cipher__BitcoinAddress, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -7528,24 +11553,17 @@ static SwigV8ReturnValue _wrap_SKY_cipher_SecKeyFromBitcoinWalletImportFormat(co
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   cipher__SecKey *arg2 = (cipher__SecKey *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_SecKeyFromBitcoinWalletImportFormat.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_SecKeyFromBitcoinWalletImportFormat.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cipher_SecKeyFromBitcoinWalletImportFormat" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cipher_SecKeyFromBitcoinWalletImportFormat" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_a_32__unsigned_char, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -7957,8 +11975,7 @@ static SwigV8ReturnValue _wrap_SKY_cli_GenerateWallet(const SwigV8Arguments &arg
   Options__Handle *arg2 = (Options__Handle *) 0 ;
   GoUint64 arg3 ;
   Wallet__Handle *arg4 = (Wallet__Handle *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   unsigned long long val3 ;
@@ -7967,18 +11984,12 @@ static SwigV8ReturnValue _wrap_SKY_cli_GenerateWallet(const SwigV8Arguments &arg
   int res4 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 4) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_GenerateWallet.");
+  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_GenerateWallet.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cli_GenerateWallet" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cli_GenerateWallet" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -8452,24 +12463,17 @@ static SwigV8ReturnValue _wrap_SKY_cipher_PubKeyFromHex(const SwigV8Arguments &a
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   cipher__PubKey *arg2 = (cipher__PubKey *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_PubKeyFromHex.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_PubKeyFromHex.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cipher_PubKeyFromHex" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cipher_PubKeyFromHex" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_a_33__unsigned_char, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -8721,24 +12725,17 @@ static SwigV8ReturnValue _wrap_SKY_cipher_SecKeyFromHex(const SwigV8Arguments &a
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   cipher__SecKey *arg2 = (cipher__SecKey *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_SecKeyFromHex.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_SecKeyFromHex.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cipher_SecKeyFromHex" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cipher_SecKeyFromHex" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_a_32__unsigned_char, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -8916,24 +12913,17 @@ static SwigV8ReturnValue _wrap_SKY_cipher_SigFromHex(const SwigV8Arguments &args
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   cipher__Sig *arg2 = (cipher__Sig *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_SigFromHex.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_SigFromHex.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cipher_SigFromHex" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cipher_SigFromHex" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_a_65__unsigned_char, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -9621,24 +13611,17 @@ static SwigV8ReturnValue _wrap_SKY_file_InitDataDir(const SwigV8Arguments &args)
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   GoString_ *arg2 = (GoString_ *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_file_InitDataDir.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_file_InitDataDir.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_file_InitDataDir" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_file_InitDataDir" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_GoString_, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -9691,24 +13674,17 @@ static SwigV8ReturnValue _wrap_SKY_file_ResolveResourceDirectory(const SwigV8Arg
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   GoString_ *arg2 = (GoString_ *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_file_ResolveResourceDirectory.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_file_ResolveResourceDirectory.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_file_ResolveResourceDirectory" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_file_ResolveResourceDirectory" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_GoString_, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -9735,50 +13711,29 @@ static SwigV8ReturnValue _wrap_SKY_file_DetermineResourcePath(const SwigV8Argume
   GoString arg2 ;
   GoString arg3 ;
   GoString_ *arg4 = (GoString_ *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  GoString temp1 ;
+  GoString temp2 ;
+  GoString temp3 ;
   void *argp4 = 0 ;
   int res4 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 4) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_file_DetermineResourcePath.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_file_DetermineResourcePath.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_file_DetermineResourcePath" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_file_DetermineResourcePath" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_file_DetermineResourcePath" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_file_DetermineResourcePath" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   {
-    res3 = SWIG_ConvertPtr(args[2], &argp3, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SKY_file_DetermineResourcePath" "', argument " "3"" of type '" "GoString""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_file_DetermineResourcePath" "', argument " "3"" of type '" "GoString""'");
-    } else {
-      arg3 = *(reinterpret_cast< GoString * >(argp3));
-    }
+    temp3.p = NULL;
+    temp3.n = 0;
+    arg3 = (GoString)temp3;
   }
   res4 = SWIG_ConvertPtr(args[3], &argp4,SWIGTYPE_p_GoString_, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
@@ -9843,13 +13798,12 @@ static SwigV8ReturnValue _wrap_SKY_map_Get(const SwigV8Arguments &args) {
   GoString_ *arg3 = (GoString_ *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_map_Get.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_map_Get.");
   
   res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -9857,15 +13811,9 @@ static SwigV8ReturnValue _wrap_SKY_map_Get(const SwigV8Arguments &args) {
   }
   arg1 = reinterpret_cast< GoStringMap_ * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_map_Get" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_map_Get" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   res3 = SWIG_ConvertPtr(args[2], &argp3,SWIGTYPE_p_GoString_, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
@@ -9893,11 +13841,10 @@ static SwigV8ReturnValue _wrap_SKY_map_HasKey(const SwigV8Arguments &args) {
   GoString arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   GoUint8 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_map_HasKey.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_map_HasKey.");
   
   res1 = SWIG_ConvertPtr(args[0], &argp1,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -9905,15 +13852,9 @@ static SwigV8ReturnValue _wrap_SKY_map_HasKey(const SwigV8Arguments &args) {
   }
   arg1 = reinterpret_cast< GoStringMap_ * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_map_HasKey" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_map_HasKey" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   result = (GoUint8)SKY_map_HasKey(arg1,arg2);
   jsresult = SWIG_From_unsigned_SS_char(static_cast< unsigned char >(result));
@@ -11262,24 +15203,17 @@ static SwigV8ReturnValue _wrap_SKY_droplet_FromString(const SwigV8Arguments &arg
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   GoUint64 *arg2 = (GoUint64 *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_droplet_FromString.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_droplet_FromString.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_droplet_FromString" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_droplet_FromString" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_unsigned_long_long, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -11341,24 +15275,17 @@ static SwigV8ReturnValue _wrap_SKY_wallet_CryptoTypeFromString(const SwigV8Argum
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   GoString_ *arg2 = (GoString_ *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_CryptoTypeFromString.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_CryptoTypeFromString.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_wallet_CryptoTypeFromString" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_CryptoTypeFromString" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_GoString_, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -11383,24 +15310,17 @@ static SwigV8ReturnValue _wrap_SKY_cipher_DecodeBase58Address(const SwigV8Argume
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   cipher__Address *arg2 = (cipher__Address *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_DecodeBase58Address.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_DecodeBase58Address.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cipher_DecodeBase58Address" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cipher_DecodeBase58Address" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_cipher__Address, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -11977,24 +15897,17 @@ static SwigV8ReturnValue _wrap_SKY_cipher_SHA256FromHex(const SwigV8Arguments &a
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   cipher__SHA256 *arg2 = (cipher__SHA256 *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_SHA256FromHex.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cipher_SHA256FromHex.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cipher_SHA256FromHex" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cipher_SHA256FromHex" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_a_32__unsigned_char, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -12215,26 +16128,19 @@ static SwigV8ReturnValue _wrap_SKY_wallet_NewWallet(const SwigV8Arguments &args)
   GoString arg1 ;
   Options__Handle arg2 ;
   Wallet__Handle *arg3 = (Wallet__Handle *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   long long val2 ;
   int ecode2 = 0 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_NewWallet.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_NewWallet.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_wallet_NewWallet" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_NewWallet" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   ecode2 = SWIG_AsVal_long_SS_long(args[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
@@ -12270,11 +16176,10 @@ static SwigV8ReturnValue _wrap_SKY_wallet_Wallet_Lock(const SwigV8Arguments &arg
   int ecode1 = 0 ;
   void *argp2 ;
   int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  GoString temp3 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_Wallet_Lock.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_Wallet_Lock.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -12293,15 +16198,9 @@ static SwigV8ReturnValue _wrap_SKY_wallet_Wallet_Lock(const SwigV8Arguments &arg
     }
   }
   {
-    res3 = SWIG_ConvertPtr(args[2], &argp3, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SKY_wallet_Wallet_Lock" "', argument " "3"" of type '" "GoString""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_Wallet_Lock" "', argument " "3"" of type '" "GoString""'");
-    } else {
-      arg3 = *(reinterpret_cast< GoString * >(argp3));
-    }
+    temp3.p = NULL;
+    temp3.n = 0;
+    arg3 = (GoString)temp3;
   }
   result = (GoUint32)SKY_wallet_Wallet_Lock(arg1,arg2,arg3);
   jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
@@ -12372,24 +16271,17 @@ static SwigV8ReturnValue _wrap_SKY_wallet_Load(const SwigV8Arguments &args) {
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   Wallet__Handle *arg2 = (Wallet__Handle *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_Load.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_Load.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_wallet_Load" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_Load" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -12416,11 +16308,10 @@ static SwigV8ReturnValue _wrap_SKY_wallet_Wallet_Save(const SwigV8Arguments &arg
   GoString arg2 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_Wallet_Save.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_Wallet_Save.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -12428,15 +16319,9 @@ static SwigV8ReturnValue _wrap_SKY_wallet_Wallet_Save(const SwigV8Arguments &arg
   } 
   arg1 = static_cast< Wallet__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_wallet_Wallet_Save" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_Wallet_Save" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   result = (GoUint32)SKY_wallet_Wallet_Save(arg1,arg2);
   jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
@@ -13067,26 +16952,19 @@ static SwigV8ReturnValue _wrap_SKY_wallet_NewReadableEntry(const SwigV8Arguments
   GoString arg1 ;
   wallet__Entry *arg2 = (wallet__Entry *) 0 ;
   ReadableEntry__Handle *arg3 = (ReadableEntry__Handle *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_NewReadableEntry.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_NewReadableEntry.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_wallet_NewReadableEntry" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_NewReadableEntry" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_wallet__Entry, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -13117,24 +16995,17 @@ static SwigV8ReturnValue _wrap_SKY_wallet_LoadReadableWallet(const SwigV8Argumen
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   ReadableWallet__Handle *arg2 = (ReadableWallet__Handle *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_LoadReadableWallet.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_LoadReadableWallet.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_wallet_LoadReadableWallet" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_LoadReadableWallet" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -13161,11 +17032,10 @@ static SwigV8ReturnValue _wrap_SKY_wallet_ReadableWallet_Save(const SwigV8Argume
   GoString arg2 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_ReadableWallet_Save.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_ReadableWallet_Save.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -13173,15 +17043,9 @@ static SwigV8ReturnValue _wrap_SKY_wallet_ReadableWallet_Save(const SwigV8Argume
   } 
   arg1 = static_cast< ReadableWallet__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_wallet_ReadableWallet_Save" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_ReadableWallet_Save" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   result = (GoUint32)SKY_wallet_ReadableWallet_Save(arg1,arg2);
   jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
@@ -13203,11 +17067,10 @@ static SwigV8ReturnValue _wrap_SKY_wallet_ReadableWallet_Load(const SwigV8Argume
   GoString arg2 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_ReadableWallet_Load.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_wallet_ReadableWallet_Load.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -13215,15 +17078,9 @@ static SwigV8ReturnValue _wrap_SKY_wallet_ReadableWallet_Load(const SwigV8Argume
   } 
   arg1 = static_cast< ReadableWallet__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_wallet_ReadableWallet_Load" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_wallet_ReadableWallet_Load" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   result = (GoUint32)SKY_wallet_ReadableWallet_Load(arg1,arg2);
   jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
@@ -13403,8 +17260,7 @@ static SwigV8ReturnValue _wrap_SKY_cli_GenerateAddressesInFile(const SwigV8Argum
   GoUint64 arg2 ;
   PasswordReader__Handle arg3 ;
   coin__UxArray *arg4 = (coin__UxArray *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   unsigned long long val2 ;
   int ecode2 = 0 ;
   long long val3 ;
@@ -13413,18 +17269,12 @@ static SwigV8ReturnValue _wrap_SKY_cli_GenerateAddressesInFile(const SwigV8Argum
   int res4 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 4) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_GenerateAddressesInFile.");
+  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_cli_GenerateAddressesInFile.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_cli_GenerateAddressesInFile" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_cli_GenerateAddressesInFile" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   ecode2 = SWIG_AsVal_unsigned_SS_long_SS_long(args[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
@@ -13679,24 +17529,17 @@ static SwigV8ReturnValue _wrap_SKY_iputil_IsLocalhost(const SwigV8Arguments &arg
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   GoUint8 *arg2 = (GoUint8 *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_iputil_IsLocalhost.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_iputil_IsLocalhost.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_iputil_IsLocalhost" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_iputil_IsLocalhost" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_unsigned_char, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -13722,26 +17565,19 @@ static SwigV8ReturnValue _wrap_SKY_iputil_SplitAddr(const SwigV8Arguments &args)
   GoString arg1 ;
   GoString_ *arg2 = (GoString_ *) 0 ;
   GoUint16 *arg3 = (GoUint16 *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_iputil_SplitAddr.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_iputil_SplitAddr.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_iputil_SplitAddr" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_iputil_SplitAddr" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_GoString_, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -14050,24 +17886,17 @@ static SwigV8ReturnValue _wrap_SKY_base58_Decode(const SwigV8Arguments &args) {
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   coin__UxArray *arg2 = (coin__UxArray *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_base58_Decode.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_base58_Decode.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_base58_Decode" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_base58_Decode" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_GoSlice_, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -14092,24 +17921,17 @@ static SwigV8ReturnValue _wrap_SKY_base58_String2Hex(const SwigV8Arguments &args
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   coin__UxArray *arg2 = (coin__UxArray *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_base58_String2Hex.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_base58_String2Hex.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_base58_String2Hex" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_base58_String2Hex" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_GoSlice_, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -14134,24 +17956,17 @@ static SwigV8ReturnValue _wrap_SKY_api_NewClient(const SwigV8Arguments &args) {
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
   Client__Handle *arg2 = (Client__Handle *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_NewClient.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_NewClient.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_api_NewClient" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_NewClient" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   res2 = SWIG_ConvertPtr(args[1], &argp2,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
@@ -14429,13 +18244,12 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_BlockByHash(const SwigV8Arguments 
   Handle *arg3 = (Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_BlockByHash.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_BlockByHash.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -14443,15 +18257,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_BlockByHash(const SwigV8Arguments 
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_BlockByHash" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_BlockByHash" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   res3 = SWIG_ConvertPtr(args[2], &argp3,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
@@ -14748,13 +18556,12 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_UxOut(const SwigV8Arguments &args)
   Handle *arg3 = (Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_UxOut.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_UxOut.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -14762,15 +18569,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_UxOut(const SwigV8Arguments &args)
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_UxOut" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_UxOut" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   res3 = SWIG_ConvertPtr(args[2], &argp3,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
@@ -14799,13 +18600,12 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_AddressUxOuts(const SwigV8Argument
   Handle *arg3 = (Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_AddressUxOuts.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_AddressUxOuts.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -14813,15 +18613,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_AddressUxOuts(const SwigV8Argument
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_AddressUxOuts" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_AddressUxOuts" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   res3 = SWIG_ConvertPtr(args[2], &argp3,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
@@ -14850,13 +18644,12 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_Wallet(const SwigV8Arguments &args
   WalletResponse__Handle *arg3 = (WalletResponse__Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_Wallet.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_Wallet.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -14864,15 +18657,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_Wallet(const SwigV8Arguments &args
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_Wallet" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_Wallet" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   res3 = SWIG_ConvertPtr(args[2], &argp3,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
@@ -14940,17 +18727,15 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_CreateUnencryptedWallet(const Swig
   WalletResponse__Handle *arg5 = (WalletResponse__Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  GoString temp2 ;
+  GoString temp3 ;
   long long val4 ;
   int ecode4 = 0 ;
   void *argp5 = 0 ;
   int res5 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 5) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_CreateUnencryptedWallet.");
+  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_CreateUnencryptedWallet.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -14958,26 +18743,14 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_CreateUnencryptedWallet(const Swig
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_CreateUnencryptedWallet" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_CreateUnencryptedWallet" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   {
-    res3 = SWIG_ConvertPtr(args[2], &argp3, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SKY_api_Client_CreateUnencryptedWallet" "', argument " "3"" of type '" "GoString""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_CreateUnencryptedWallet" "', argument " "3"" of type '" "GoString""'");
-    } else {
-      arg3 = *(reinterpret_cast< GoString * >(argp3));
-    }
+    temp3.p = NULL;
+    temp3.n = 0;
+    arg3 = (GoString)temp3;
   }
   ecode4 = SWIG_AsVal_long_SS_long(args[3], &val4);
   if (!SWIG_IsOK(ecode4)) {
@@ -15015,19 +18788,16 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_CreateEncryptedWallet(const SwigV8
   WalletResponse__Handle *arg6 = (WalletResponse__Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
-  void *argp4 ;
-  int res4 = 0 ;
+  GoString temp2 ;
+  GoString temp3 ;
+  GoString temp4 ;
   long long val5 ;
   int ecode5 = 0 ;
   void *argp6 = 0 ;
   int res6 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 6) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_CreateEncryptedWallet.");
+  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_CreateEncryptedWallet.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -15035,37 +18805,19 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_CreateEncryptedWallet(const SwigV8
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_CreateEncryptedWallet" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_CreateEncryptedWallet" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   {
-    res3 = SWIG_ConvertPtr(args[2], &argp3, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SKY_api_Client_CreateEncryptedWallet" "', argument " "3"" of type '" "GoString""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_CreateEncryptedWallet" "', argument " "3"" of type '" "GoString""'");
-    } else {
-      arg3 = *(reinterpret_cast< GoString * >(argp3));
-    }
+    temp3.p = NULL;
+    temp3.n = 0;
+    arg3 = (GoString)temp3;
   }
   {
-    res4 = SWIG_ConvertPtr(args[3], &argp4, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "SKY_api_Client_CreateEncryptedWallet" "', argument " "4"" of type '" "GoString""'"); 
-    }  
-    if (!argp4) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_CreateEncryptedWallet" "', argument " "4"" of type '" "GoString""'");
-    } else {
-      arg4 = *(reinterpret_cast< GoString * >(argp4));
-    }
+    temp4.p = NULL;
+    temp4.n = 0;
+    arg4 = (GoString)temp4;
   }
   ecode5 = SWIG_AsVal_long_SS_long(args[4], &val5);
   if (!SWIG_IsOK(ecode5)) {
@@ -15102,17 +18854,15 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_NewWalletAddress(const SwigV8Argum
   Strings__Handle *arg5 = (Strings__Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   long long val3 ;
   int ecode3 = 0 ;
-  void *argp4 ;
-  int res4 = 0 ;
+  GoString temp4 ;
   void *argp5 = 0 ;
   int res5 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 5) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_NewWalletAddress.");
+  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_NewWalletAddress.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -15120,15 +18870,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_NewWalletAddress(const SwigV8Argum
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_NewWalletAddress" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_NewWalletAddress" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   ecode3 = SWIG_AsVal_long_SS_long(args[2], &val3);
   if (!SWIG_IsOK(ecode3)) {
@@ -15136,15 +18880,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_NewWalletAddress(const SwigV8Argum
   } 
   arg3 = static_cast< GoInt >(val3);
   {
-    res4 = SWIG_ConvertPtr(args[3], &argp4, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "SKY_api_Client_NewWalletAddress" "', argument " "4"" of type '" "GoString""'"); 
-    }  
-    if (!argp4) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_NewWalletAddress" "', argument " "4"" of type '" "GoString""'");
-    } else {
-      arg4 = *(reinterpret_cast< GoString * >(argp4));
-    }
+    temp4.p = NULL;
+    temp4.n = 0;
+    arg4 = (GoString)temp4;
   }
   res5 = SWIG_ConvertPtr(args[4], &argp5,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res5)) {
@@ -15174,13 +18912,12 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_WalletBalance(const SwigV8Argument
   wallet__BalancePair *arg3 = (wallet__BalancePair *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_WalletBalance.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_WalletBalance.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -15188,15 +18925,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_WalletBalance(const SwigV8Argument
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_WalletBalance" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_WalletBalance" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   res3 = SWIG_ConvertPtr(args[2], &argp3,SWIGTYPE_p_wallet__BalancePair, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
@@ -15271,13 +19002,11 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_UpdateWallet(const SwigV8Arguments
   GoString arg3 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  GoString temp2 ;
+  GoString temp3 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_UpdateWallet.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_UpdateWallet.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -15285,26 +19014,14 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_UpdateWallet(const SwigV8Arguments
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_UpdateWallet" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_UpdateWallet" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   {
-    res3 = SWIG_ConvertPtr(args[2], &argp3, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SKY_api_Client_UpdateWallet" "', argument " "3"" of type '" "GoString""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_UpdateWallet" "', argument " "3"" of type '" "GoString""'");
-    } else {
-      arg3 = *(reinterpret_cast< GoString * >(argp3));
-    }
+    temp3.p = NULL;
+    temp3.n = 0;
+    arg3 = (GoString)temp3;
   }
   result = (GoUint32)SKY_api_Client_UpdateWallet(arg1,arg2,arg3);
   jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
@@ -15411,15 +19128,13 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_WalletSeed(const SwigV8Arguments &
   GoString_ *arg4 = (GoString_ *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  GoString temp2 ;
+  GoString temp3 ;
   void *argp4 = 0 ;
   int res4 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 4) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_WalletSeed.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_WalletSeed.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -15427,26 +19142,14 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_WalletSeed(const SwigV8Arguments &
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_WalletSeed" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_WalletSeed" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   {
-    res3 = SWIG_ConvertPtr(args[2], &argp3, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SKY_api_Client_WalletSeed" "', argument " "3"" of type '" "GoString""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_WalletSeed" "', argument " "3"" of type '" "GoString""'");
-    } else {
-      arg3 = *(reinterpret_cast< GoString * >(argp3));
-    }
+    temp3.p = NULL;
+    temp3.n = 0;
+    arg3 = (GoString)temp3;
   }
   res4 = SWIG_ConvertPtr(args[3], &argp4,SWIGTYPE_p_GoString_, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
@@ -15475,13 +19178,12 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_NetworkConnection(const SwigV8Argu
   Handle *arg3 = (Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_NetworkConnection.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_NetworkConnection.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -15489,15 +19191,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_NetworkConnection(const SwigV8Argu
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_NetworkConnection" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_NetworkConnection" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   res3 = SWIG_ConvertPtr(args[2], &argp3,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
@@ -15720,13 +19416,12 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_Transaction(const SwigV8Arguments 
   Handle *arg3 = (Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_Transaction.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_Transaction.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -15734,15 +19429,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_Transaction(const SwigV8Arguments 
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_Transaction" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_Transaction" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   res3 = SWIG_ConvertPtr(args[2], &argp3,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
@@ -16007,13 +19696,12 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_RawTransaction(const SwigV8Argumen
   GoString_ *arg3 = (GoString_ *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_RawTransaction.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_RawTransaction.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -16021,15 +19709,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_RawTransaction(const SwigV8Argumen
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_RawTransaction" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_RawTransaction" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   res3 = SWIG_ConvertPtr(args[2], &argp3,SWIGTYPE_p_GoString_, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
@@ -16140,11 +19822,10 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_UnloadWallet(const SwigV8Arguments
   GoString arg2 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp2 ;
   GoUint32 result;
   
-  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_UnloadWallet.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_UnloadWallet.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -16152,15 +19833,9 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_UnloadWallet(const SwigV8Arguments
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_UnloadWallet" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_UnloadWallet" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   result = (GoUint32)SKY_api_Client_UnloadWallet(arg1,arg2);
   jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
@@ -16221,15 +19896,13 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_EncryptWallet(const SwigV8Argument
   WalletResponse__Handle *arg4 = (WalletResponse__Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  GoString temp2 ;
+  GoString temp3 ;
   void *argp4 = 0 ;
   int res4 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 4) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_EncryptWallet.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_EncryptWallet.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -16237,26 +19910,14 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_EncryptWallet(const SwigV8Argument
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_EncryptWallet" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_EncryptWallet" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   {
-    res3 = SWIG_ConvertPtr(args[2], &argp3, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SKY_api_Client_EncryptWallet" "', argument " "3"" of type '" "GoString""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_EncryptWallet" "', argument " "3"" of type '" "GoString""'");
-    } else {
-      arg3 = *(reinterpret_cast< GoString * >(argp3));
-    }
+    temp3.p = NULL;
+    temp3.n = 0;
+    arg3 = (GoString)temp3;
   }
   res4 = SWIG_ConvertPtr(args[3], &argp4,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
@@ -16286,15 +19947,13 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_DecryptWallet(const SwigV8Argument
   WalletResponse__Handle *arg4 = (WalletResponse__Handle *) 0 ;
   long long val1 ;
   int ecode1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  GoString temp2 ;
+  GoString temp3 ;
   void *argp4 = 0 ;
   int res4 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 4) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_DecryptWallet.");
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_api_Client_DecryptWallet.");
   
   ecode1 = SWIG_AsVal_long_SS_long(args[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -16302,26 +19961,14 @@ static SwigV8ReturnValue _wrap_SKY_api_Client_DecryptWallet(const SwigV8Argument
   } 
   arg1 = static_cast< Client__Handle >(val1);
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_api_Client_DecryptWallet" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_DecryptWallet" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   {
-    res3 = SWIG_ConvertPtr(args[2], &argp3, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SKY_api_Client_DecryptWallet" "', argument " "3"" of type '" "GoString""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_api_Client_DecryptWallet" "', argument " "3"" of type '" "GoString""'");
-    } else {
-      arg3 = *(reinterpret_cast< GoString * >(argp3));
-    }
+    temp3.p = NULL;
+    temp3.n = 0;
+    arg3 = (GoString)temp3;
   }
   res4 = SWIG_ConvertPtr(args[3], &argp4,SWIGTYPE_p_long_long, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
@@ -18409,22 +22056,15 @@ static SwigV8ReturnValue _wrap_SKY_bip39_ValidateMnemonic(const SwigV8Arguments 
   
   v8::Handle<v8::Value> jsresult;
   GoString arg1 ;
-  void *argp1 ;
-  int res1 = 0 ;
+  GoString temp1 ;
   GoUint32 result;
   
-  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_bip39_ValidateMnemonic.");
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_bip39_ValidateMnemonic.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_bip39_ValidateMnemonic" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_bip39_ValidateMnemonic" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   result = (GoUint32)SKY_bip39_ValidateMnemonic(arg1);
   jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
@@ -18444,37 +22084,23 @@ static SwigV8ReturnValue _wrap_SKY_bip39_NewSeed(const SwigV8Arguments &args) {
   GoString arg1 ;
   GoString arg2 ;
   coin__UxArray *arg3 = (coin__UxArray *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  GoString temp1 ;
+  GoString temp2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
   GoUint32 result;
   
-  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_bip39_NewSeed.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_SKY_bip39_NewSeed.");
   
   {
-    res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SKY_bip39_NewSeed" "', argument " "1"" of type '" "GoString""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_bip39_NewSeed" "', argument " "1"" of type '" "GoString""'");
-    } else {
-      arg1 = *(reinterpret_cast< GoString * >(argp1));
-    }
+    temp1.p = NULL;
+    temp1.n = 0;
+    arg1 = (GoString)temp1;
   }
   {
-    res2 = SWIG_ConvertPtr(args[1], &argp2, SWIGTYPE_p__GoString_,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SKY_bip39_NewSeed" "', argument " "2"" of type '" "GoString""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SKY_bip39_NewSeed" "', argument " "2"" of type '" "GoString""'");
-    } else {
-      arg2 = *(reinterpret_cast< GoString * >(argp2));
-    }
+    temp2.p = NULL;
+    temp2.n = 0;
+    arg2 = (GoString)temp2;
   }
   res3 = SWIG_ConvertPtr(args[2], &argp3,SWIGTYPE_p_GoSlice_, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
@@ -19565,7 +23191,7 @@ static void _wrap_api__RichlistParams_N_set(v8::Local<v8::String> property, v8::
     GoInt_ arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int val2 ;
+    long long val2 ;
     int ecode2 = 0 ;
     
     res1 = SWIG_ConvertPtr(info.Holder(), &argp1,SWIGTYPE_p_api__RichlistParams, 0 |  0 );
@@ -19573,7 +23199,7 @@ static void _wrap_api__RichlistParams_N_set(v8::Local<v8::String> property, v8::
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "api__RichlistParams_N_set" "', argument " "1"" of type '" "api__RichlistParams *""'"); 
     }
     arg1 = reinterpret_cast< api__RichlistParams * >(argp1);
-    ecode2 = SWIG_AsVal_int(value, &val2);
+    ecode2 = SWIG_AsVal_long_SS_long(value, &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "api__RichlistParams_N_set" "', argument " "2"" of type '" "GoInt_""'");
     } 
@@ -19607,7 +23233,7 @@ static SwigV8ReturnValue _wrap_api__RichlistParams_N_get(v8::Local<v8::String> p
     }
     arg1 = reinterpret_cast< api__RichlistParams * >(argp1);
     result = (GoInt_) ((arg1)->N);
-    jsresult = SWIG_From_int(static_cast< int >(result));
+    jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
     
     
     SWIGV8_RETURN_INFO(jsresult, info);
@@ -20315,7 +23941,7 @@ static void _wrap_encrypt__ScryptChacha20poly1305_N_set(v8::Local<v8::String> pr
     GoInt_ arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int val2 ;
+    long long val2 ;
     int ecode2 = 0 ;
     
     res1 = SWIG_ConvertPtr(info.Holder(), &argp1,SWIGTYPE_p_encrypt__ScryptChacha20poly1305, 0 |  0 );
@@ -20323,7 +23949,7 @@ static void _wrap_encrypt__ScryptChacha20poly1305_N_set(v8::Local<v8::String> pr
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "encrypt__ScryptChacha20poly1305_N_set" "', argument " "1"" of type '" "encrypt__ScryptChacha20poly1305 *""'"); 
     }
     arg1 = reinterpret_cast< encrypt__ScryptChacha20poly1305 * >(argp1);
-    ecode2 = SWIG_AsVal_int(value, &val2);
+    ecode2 = SWIG_AsVal_long_SS_long(value, &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "encrypt__ScryptChacha20poly1305_N_set" "', argument " "2"" of type '" "GoInt_""'");
     } 
@@ -20357,7 +23983,7 @@ static SwigV8ReturnValue _wrap_encrypt__ScryptChacha20poly1305_N_get(v8::Local<v
     }
     arg1 = reinterpret_cast< encrypt__ScryptChacha20poly1305 * >(argp1);
     result = (GoInt_) ((arg1)->N);
-    jsresult = SWIG_From_int(static_cast< int >(result));
+    jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
     
     
     SWIGV8_RETURN_INFO(jsresult, info);
@@ -20379,7 +24005,7 @@ static void _wrap_encrypt__ScryptChacha20poly1305_R_set(v8::Local<v8::String> pr
     GoInt_ arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int val2 ;
+    long long val2 ;
     int ecode2 = 0 ;
     
     res1 = SWIG_ConvertPtr(info.Holder(), &argp1,SWIGTYPE_p_encrypt__ScryptChacha20poly1305, 0 |  0 );
@@ -20387,7 +24013,7 @@ static void _wrap_encrypt__ScryptChacha20poly1305_R_set(v8::Local<v8::String> pr
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "encrypt__ScryptChacha20poly1305_R_set" "', argument " "1"" of type '" "encrypt__ScryptChacha20poly1305 *""'"); 
     }
     arg1 = reinterpret_cast< encrypt__ScryptChacha20poly1305 * >(argp1);
-    ecode2 = SWIG_AsVal_int(value, &val2);
+    ecode2 = SWIG_AsVal_long_SS_long(value, &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "encrypt__ScryptChacha20poly1305_R_set" "', argument " "2"" of type '" "GoInt_""'");
     } 
@@ -20421,7 +24047,7 @@ static SwigV8ReturnValue _wrap_encrypt__ScryptChacha20poly1305_R_get(v8::Local<v
     }
     arg1 = reinterpret_cast< encrypt__ScryptChacha20poly1305 * >(argp1);
     result = (GoInt_) ((arg1)->R);
-    jsresult = SWIG_From_int(static_cast< int >(result));
+    jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
     
     
     SWIGV8_RETURN_INFO(jsresult, info);
@@ -20443,7 +24069,7 @@ static void _wrap_encrypt__ScryptChacha20poly1305_P_set(v8::Local<v8::String> pr
     GoInt_ arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int val2 ;
+    long long val2 ;
     int ecode2 = 0 ;
     
     res1 = SWIG_ConvertPtr(info.Holder(), &argp1,SWIGTYPE_p_encrypt__ScryptChacha20poly1305, 0 |  0 );
@@ -20451,7 +24077,7 @@ static void _wrap_encrypt__ScryptChacha20poly1305_P_set(v8::Local<v8::String> pr
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "encrypt__ScryptChacha20poly1305_P_set" "', argument " "1"" of type '" "encrypt__ScryptChacha20poly1305 *""'"); 
     }
     arg1 = reinterpret_cast< encrypt__ScryptChacha20poly1305 * >(argp1);
-    ecode2 = SWIG_AsVal_int(value, &val2);
+    ecode2 = SWIG_AsVal_long_SS_long(value, &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "encrypt__ScryptChacha20poly1305_P_set" "', argument " "2"" of type '" "GoInt_""'");
     } 
@@ -20485,7 +24111,7 @@ static SwigV8ReturnValue _wrap_encrypt__ScryptChacha20poly1305_P_get(v8::Local<v
     }
     arg1 = reinterpret_cast< encrypt__ScryptChacha20poly1305 * >(argp1);
     result = (GoInt_) ((arg1)->P);
-    jsresult = SWIG_From_int(static_cast< int >(result));
+    jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
     
     
     SWIGV8_RETURN_INFO(jsresult, info);
@@ -20507,7 +24133,7 @@ static void _wrap_encrypt__ScryptChacha20poly1305_KeyLen_set(v8::Local<v8::Strin
     GoInt_ arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int val2 ;
+    long long val2 ;
     int ecode2 = 0 ;
     
     res1 = SWIG_ConvertPtr(info.Holder(), &argp1,SWIGTYPE_p_encrypt__ScryptChacha20poly1305, 0 |  0 );
@@ -20515,7 +24141,7 @@ static void _wrap_encrypt__ScryptChacha20poly1305_KeyLen_set(v8::Local<v8::Strin
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "encrypt__ScryptChacha20poly1305_KeyLen_set" "', argument " "1"" of type '" "encrypt__ScryptChacha20poly1305 *""'"); 
     }
     arg1 = reinterpret_cast< encrypt__ScryptChacha20poly1305 * >(argp1);
-    ecode2 = SWIG_AsVal_int(value, &val2);
+    ecode2 = SWIG_AsVal_long_SS_long(value, &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "encrypt__ScryptChacha20poly1305_KeyLen_set" "', argument " "2"" of type '" "GoInt_""'");
     } 
@@ -20549,7 +24175,7 @@ static SwigV8ReturnValue _wrap_encrypt__ScryptChacha20poly1305_KeyLen_get(v8::Lo
     }
     arg1 = reinterpret_cast< encrypt__ScryptChacha20poly1305 * >(argp1);
     result = (GoInt_) ((arg1)->KeyLen);
-    jsresult = SWIG_From_int(static_cast< int >(result));
+    jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
     
     
     SWIGV8_RETURN_INFO(jsresult, info);
@@ -25727,7 +29353,7 @@ static void _wrap_api__TransactionInput_CalculatedHours_set(v8::Local<v8::String
     GoUint_ arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    unsigned int val2 ;
+    unsigned long long val2 ;
     int ecode2 = 0 ;
     
     res1 = SWIG_ConvertPtr(info.Holder(), &argp1,SWIGTYPE_p_api__TransactionInput, 0 |  0 );
@@ -25735,7 +29361,7 @@ static void _wrap_api__TransactionInput_CalculatedHours_set(v8::Local<v8::String
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "api__TransactionInput_CalculatedHours_set" "', argument " "1"" of type '" "api__TransactionInput *""'"); 
     }
     arg1 = reinterpret_cast< api__TransactionInput * >(argp1);
-    ecode2 = SWIG_AsVal_unsigned_SS_int(value, &val2);
+    ecode2 = SWIG_AsVal_unsigned_SS_long_SS_long(value, &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "api__TransactionInput_CalculatedHours_set" "', argument " "2"" of type '" "GoUint_""'");
     } 
@@ -25769,7 +29395,7 @@ static SwigV8ReturnValue _wrap_api__TransactionInput_CalculatedHours_get(v8::Loc
     }
     arg1 = reinterpret_cast< api__TransactionInput * >(argp1);
     result = (GoUint_) ((arg1)->CalculatedHours);
-    jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+    jsresult = SWIG_From_unsigned_SS_long_SS_long(static_cast< unsigned long long >(result));
     
     
     SWIGV8_RETURN_INFO(jsresult, info);
@@ -29610,7 +33236,7 @@ static void _wrap_GoString__n_set(v8::Local<v8::String> property, v8::Local<v8::
     GoInt_ arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int val2 ;
+    long long val2 ;
     int ecode2 = 0 ;
     
     res1 = SWIG_ConvertPtr(info.Holder(), &argp1,SWIGTYPE_p_GoString_, 0 |  0 );
@@ -29618,7 +33244,7 @@ static void _wrap_GoString__n_set(v8::Local<v8::String> property, v8::Local<v8::
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoString__n_set" "', argument " "1"" of type '" "GoString_ *""'"); 
     }
     arg1 = reinterpret_cast< GoString_ * >(argp1);
-    ecode2 = SWIG_AsVal_int(value, &val2);
+    ecode2 = SWIG_AsVal_long_SS_long(value, &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GoString__n_set" "', argument " "2"" of type '" "GoInt_""'");
     } 
@@ -29652,7 +33278,7 @@ static SwigV8ReturnValue _wrap_GoString__n_get(v8::Local<v8::String> property, c
     }
     arg1 = reinterpret_cast< GoString_ * >(argp1);
     result = (GoInt_) ((arg1)->n);
-    jsresult = SWIG_From_int(static_cast< int >(result));
+    jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
     
     
     SWIGV8_RETURN_INFO(jsresult, info);
@@ -29972,7 +33598,7 @@ static void _wrap_GoSlice__len_set(v8::Local<v8::String> property, v8::Local<v8:
     GoInt_ arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int val2 ;
+    long long val2 ;
     int ecode2 = 0 ;
     
     res1 = SWIG_ConvertPtr(info.Holder(), &argp1,SWIGTYPE_p_GoSlice_, 0 |  0 );
@@ -29980,7 +33606,7 @@ static void _wrap_GoSlice__len_set(v8::Local<v8::String> property, v8::Local<v8:
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoSlice__len_set" "', argument " "1"" of type '" "GoSlice_ *""'"); 
     }
     arg1 = reinterpret_cast< GoSlice_ * >(argp1);
-    ecode2 = SWIG_AsVal_int(value, &val2);
+    ecode2 = SWIG_AsVal_long_SS_long(value, &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GoSlice__len_set" "', argument " "2"" of type '" "GoInt_""'");
     } 
@@ -30014,7 +33640,7 @@ static SwigV8ReturnValue _wrap_GoSlice__len_get(v8::Local<v8::String> property, 
     }
     arg1 = reinterpret_cast< GoSlice_ * >(argp1);
     result = (GoInt_) ((arg1)->len);
-    jsresult = SWIG_From_int(static_cast< int >(result));
+    jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
     
     
     SWIGV8_RETURN_INFO(jsresult, info);
@@ -30036,7 +33662,7 @@ static void _wrap_GoSlice__cap_set(v8::Local<v8::String> property, v8::Local<v8:
     GoInt_ arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int val2 ;
+    long long val2 ;
     int ecode2 = 0 ;
     
     res1 = SWIG_ConvertPtr(info.Holder(), &argp1,SWIGTYPE_p_GoSlice_, 0 |  0 );
@@ -30044,7 +33670,7 @@ static void _wrap_GoSlice__cap_set(v8::Local<v8::String> property, v8::Local<v8:
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GoSlice__cap_set" "', argument " "1"" of type '" "GoSlice_ *""'"); 
     }
     arg1 = reinterpret_cast< GoSlice_ * >(argp1);
-    ecode2 = SWIG_AsVal_int(value, &val2);
+    ecode2 = SWIG_AsVal_long_SS_long(value, &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GoSlice__cap_set" "', argument " "2"" of type '" "GoInt_""'");
     } 
@@ -30078,7 +33704,7 @@ static SwigV8ReturnValue _wrap_GoSlice__cap_get(v8::Local<v8::String> property, 
     }
     arg1 = reinterpret_cast< GoSlice_ * >(argp1);
     result = (GoInt_) ((arg1)->cap);
-    jsresult = SWIG_From_int(static_cast< int >(result));
+    jsresult = SWIG_From_long_SS_long(static_cast< long long >(result));
     
     
     SWIGV8_RETURN_INFO(jsresult, info);
@@ -30933,11 +34559,12 @@ static swig_type_info _swigt__p_float = {"_p_float", "float *|GoFloat32_ *|GoFlo
 static swig_type_info _swigt__p_httphelper__Address = {"_p_httphelper__Address", "httphelper__Address *|p_httphelper__Address", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_httphelper__SHA256 = {"_p_httphelper__SHA256", "httphelper__SHA256 *|p_httphelper__SHA256", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_int = {"_p_int", "int *|GoInt32 *|GoInt_ *|GoInt32_ *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_long_long = {"_p_long_long", "GoStringMap_ *|GoInt64 *|long long *|GoInt64_ *|GoInt *|OutputsResult_Handle *|WalletReadableNotes_Handle *|TransactionResult_Handle *|Transactions__Handle *|BlockHeader__Handle *|BlockBody__Handle *|Block__Handle *|PasswordReader__Handle *|CLI__Handle *|Config__Handle *|Wallet__Handle *|Options__Handle *|WalletResponse__Handle *|CreateTransactionResponse__Handle *|CreatedTransaction__Handle *|Transaction__Handle *|CreatedTransactionOutput__Handle *|CreatedTransactionInput__Handle *|ReadableEntry__Handle *|ReadableWallet__Handle *|SpendResult_Handle *|BalanceResult_Handle *|SignedBlock__Handle *|CreateTransactionParams__Handle *|ReadableOutputSet_Handle *|CreateTransactionRequest__Handle *|WebRpcClient__Handle *|AddressUxOuts_Handle *|SortableTransactionResult_Handle *|Strings__Handle *|Wallets__Handle *|Client__Handle *|StatusResult_Handle *|BuildInfo_Handle *|ReadableUnspentOutputsSummary_Handle *|Hash_Handle *|Number_Handle *|Signature_Handle *|UnspentOutputsSummary_Handle *|Handle *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_long_long = {"_p_long_long", "GoStringMap_ *|GoInt64 *|long long *|GoInt64_ *|GoInt *|TransactionResult_Handle *|SpendResult_Handle *|BalanceResult_Handle *|SignedBlock__Handle *|WalletResponse__Handle *|Number_Handle *|Signature_Handle *|BlockBody__Handle *|BlockHeader__Handle *|Block__Handle *|Transaction__Handle *|Transactions__Handle *|AddressUxOuts_Handle *|Options__Handle *|Wallet__Handle *|Config__Handle *|CLI__Handle *|PasswordReader__Handle *|CreateTransactionResponse__Handle *|CreatedTransaction__Handle *|CreateTransactionParams__Handle *|ReadableOutputSet_Handle *|CreateTransactionRequest__Handle *|WebRpcClient__Handle *|SortableTransactionResult_Handle *|Strings__Handle *|Wallets__Handle *|Client__Handle *|ReadableWallet__Handle *|ReadableEntry__Handle *|CreatedTransactionInput__Handle *|CreatedTransactionOutput__Handle *|WalletReadableNotes_Handle *|OutputsResult_Handle *|StatusResult_Handle *|BuildInfo_Handle *|ReadableUnspentOutputsSummary_Handle *|Hash_Handle *|UnspentOutputsSummary_Handle *|Handle *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GoSlice_ = {"_p_p_GoSlice_", "coin__UxArray **|GoSlice_ **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_coin__Block = {"_p_p_coin__Block", "coin__Block **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_coin__BlockHeader = {"_p_p_coin__BlockHeader", "coin__BlockHeader **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_coin__Transaction = {"_p_p_coin__Transaction", "coin__Transaction **", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int = {"_p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int", "FeeCalcFunc *|unsigned int (**)(long long,unsigned long long *,void *)", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_secp256k1go__Field = {"_p_secp256k1go__Field", "p_secp256k1go__Field|secp256k1go__Field *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_secp256k1go__XY = {"_p_secp256k1go__XY", "p_secp256k1go__XY|secp256k1go__XY *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_secp256k1go__XYZ = {"_p_secp256k1go__XYZ", "p_secp256k1go__XYZ|secp256k1go__XYZ *", 0, 0, (void*)0, 0};
@@ -31017,6 +34644,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_p_coin__Block,
   &_swigt__p_p_coin__BlockHeader,
   &_swigt__p_p_coin__Transaction,
+  &_swigt__p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int,
   &_swigt__p_secp256k1go__Field,
   &_swigt__p_secp256k1go__XY,
   &_swigt__p_secp256k1go__XYZ,
@@ -31096,6 +34724,7 @@ static swig_cast_info _swigc__p_p_GoSlice_[] = {  {&_swigt__p_p_GoSlice_, 0, 0, 
 static swig_cast_info _swigc__p_p_coin__Block[] = {  {&_swigt__p_p_coin__Block, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_coin__BlockHeader[] = {  {&_swigt__p_p_coin__BlockHeader, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_coin__Transaction[] = {  {&_swigt__p_p_coin__Transaction, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int[] = {  {&_swigt__p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_secp256k1go__Field[] = {  {&_swigt__p_secp256k1go__Field, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_secp256k1go__XY[] = {  {&_swigt__p_secp256k1go__XY, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_secp256k1go__XYZ[] = {  {&_swigt__p_secp256k1go__XYZ, 0, 0, 0},{0, 0, 0, 0}};
@@ -31175,6 +34804,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_p_coin__Block,
   _swigc__p_p_coin__BlockHeader,
   _swigc__p_p_coin__Transaction,
+  _swigc__p_p_f_long_long_p_unsigned_long_long_p_void__unsigned_int,
   _swigc__p_secp256k1go__Field,
   _swigc__p_secp256k1go__XY,
   _swigc__p_secp256k1go__XYZ,
@@ -31883,10 +35513,18 @@ SWIGV8_AddMemberVariable(_exports_cipher_Addresses_class, "data", _wrap_cipher_A
 SWIGV8_AddMemberVariable(_exports_cipher_Addresses_class, "count", _wrap_cipher_Addresses_count_get, _wrap_cipher_Addresses_count_set);
 SWIGV8_AddMemberVariable(_exports_Fee_Calculator_class, "callback", _wrap_Fee_Calculator_callback_get, _wrap_Fee_Calculator_callback_set);
 SWIGV8_AddMemberVariable(_exports_Fee_Calculator_class, "context", _wrap_Fee_Calculator_context_get, _wrap_Fee_Calculator_context_set);
+SWIGV8_AddMemberFunction(_exports__GoString__class, "SetString", _wrap__GoString__SetString);
+SWIGV8_AddMemberFunction(_exports__GoString__class, "getString", _wrap__GoString__getString);
+SWIGV8_AddMemberFunction(_exports__GoString__class, "isEqual", _wrap__GoString__isEqual);
 SWIGV8_AddMemberVariable(_exports__GoString__class, "p", _wrap__GoString__p_get, _wrap__GoString__p_set);
 SWIGV8_AddMemberVariable(_exports__GoString__class, "n", _wrap__GoString__n_get, _wrap__GoString__n_set);
 SWIGV8_AddMemberVariable(_exports_GoInterface_class, "t", _wrap_GoInterface_t_get, _wrap_GoInterface_t_set);
 SWIGV8_AddMemberVariable(_exports_GoInterface_class, "v", _wrap_GoInterface_v_get, _wrap_GoInterface_v_set);
+SWIGV8_AddMemberFunction(_exports_GoSlice_class, "isEqual", _wrap_GoSlice_isEqual);
+SWIGV8_AddMemberFunction(_exports_GoSlice_class, "convertString", _wrap_GoSlice_convertString);
+SWIGV8_AddMemberFunction(_exports_GoSlice_class, "setAtChar", _wrap_GoSlice_setAtChar);
+SWIGV8_AddMemberFunction(_exports_GoSlice_class, "getString", _wrap_GoSlice_getString);
+SWIGV8_AddMemberFunction(_exports_GoSlice_class, "getAtString", _wrap_GoSlice_getAtString);
 SWIGV8_AddMemberVariable(_exports_GoSlice_class, "data", _wrap_GoSlice_data_get, _wrap_GoSlice_data_set);
 SWIGV8_AddMemberVariable(_exports_GoSlice_class, "len", _wrap_GoSlice_len_get, _wrap_GoSlice_len_set);
 SWIGV8_AddMemberVariable(_exports_GoSlice_class, "cap", _wrap_GoSlice_cap_get, _wrap_GoSlice_cap_set);
@@ -32472,7 +36110,121 @@ v8::Handle<v8::Object> _exports_FeeCalculator_obj = _exports_FeeCalculator_class
 
 
   /* add static class functions and variables */
-  SWIGV8_AddStaticFunction(exports_obj, "SKY_fee_VerifyTransactionFee", _wrap_SKY_fee_VerifyTransactionFee);
+  SWIGV8_AddStaticFunction(exports_obj, "equalSlices", _wrap_equalSlices);
+SWIGV8_AddStaticFunction(exports_obj, "equalTransactions", _wrap_equalTransactions);
+SWIGV8_AddStaticFunction(exports_obj, "equalTransactionsArrays", _wrap_equalTransactionsArrays);
+SWIGV8_AddStaticFunction(exports_obj, "equalBlockHeaders", _wrap_equalBlockHeaders);
+SWIGV8_AddStaticFunction(exports_obj, "new_GoSlicePtr", _wrap_new_GoSlicePtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_GoSlicePtr", _wrap_copy_GoSlicePtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_GoSlicePtr", _wrap_delete_GoSlicePtr);
+SWIGV8_AddStaticFunction(exports_obj, "GoSlicePtr_assign", _wrap_GoSlicePtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "GoSlicePtr_value", _wrap_GoSlicePtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_GoUint8Ptr", _wrap_new_GoUint8Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_GoUint8Ptr", _wrap_copy_GoUint8Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_GoUint8Ptr", _wrap_delete_GoUint8Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "GoUint8Ptr_assign", _wrap_GoUint8Ptr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "GoUint8Ptr_value", _wrap_GoUint8Ptr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_GoStringPtr", _wrap_new_GoStringPtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_GoStringPtr", _wrap_copy_GoStringPtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_GoStringPtr", _wrap_delete_GoStringPtr);
+SWIGV8_AddStaticFunction(exports_obj, "GoStringPtr_assign", _wrap_GoStringPtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "GoStringPtr_value", _wrap_GoStringPtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_IntPtr", _wrap_new_IntPtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_IntPtr", _wrap_copy_IntPtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_IntPtr", _wrap_delete_IntPtr);
+SWIGV8_AddStaticFunction(exports_obj, "IntPtr_assign", _wrap_IntPtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "IntPtr_value", _wrap_IntPtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_coin__TransactionPtr", _wrap_new_coin__TransactionPtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_coin__TransactionPtr", _wrap_copy_coin__TransactionPtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_coin__TransactionPtr", _wrap_delete_coin__TransactionPtr);
+SWIGV8_AddStaticFunction(exports_obj, "coin__TransactionPtr_assign", _wrap_coin__TransactionPtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "coin__TransactionPtr_value", _wrap_coin__TransactionPtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_AddressUxOuts__HandlePtr", _wrap_new_AddressUxOuts__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_AddressUxOuts__HandlePtr", _wrap_copy_AddressUxOuts__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_AddressUxOuts__HandlePtr", _wrap_delete_AddressUxOuts__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "AddressUxOuts__HandlePtr_assign", _wrap_AddressUxOuts__HandlePtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "AddressUxOuts__HandlePtr_value", _wrap_AddressUxOuts__HandlePtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_GoUint64Ptr", _wrap_new_GoUint64Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_GoUint64Ptr", _wrap_copy_GoUint64Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_GoUint64Ptr", _wrap_delete_GoUint64Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "GoUint64Ptr_assign", _wrap_GoUint64Ptr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "GoUint64Ptr_value", _wrap_GoUint64Ptr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_GointPtr", _wrap_new_GointPtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_GointPtr", _wrap_copy_GointPtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_GointPtr", _wrap_delete_GointPtr);
+SWIGV8_AddStaticFunction(exports_obj, "GointPtr_assign", _wrap_GointPtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "GointPtr_value", _wrap_GointPtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_GoUint16Ptr", _wrap_new_GoUint16Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_GoUint16Ptr", _wrap_copy_GoUint16Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_GoUint16Ptr", _wrap_delete_GoUint16Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "GoUint16Ptr_assign", _wrap_GoUint16Ptr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "GoUint16Ptr_value", _wrap_GoUint16Ptr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_GoUint32Ptr", _wrap_new_GoUint32Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_GoUint32Ptr", _wrap_copy_GoUint32Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_GoUint32Ptr", _wrap_delete_GoUint32Ptr);
+SWIGV8_AddStaticFunction(exports_obj, "GoUint32Ptr_assign", _wrap_GoUint32Ptr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "GoUint32Ptr_value", _wrap_GoUint32Ptr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_cipher__AddressPtr", _wrap_new_cipher__AddressPtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_cipher__AddressPtr", _wrap_copy_cipher__AddressPtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_cipher__AddressPtr", _wrap_delete_cipher__AddressPtr);
+SWIGV8_AddStaticFunction(exports_obj, "cipher__AddressPtr_assign", _wrap_cipher__AddressPtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "cipher__AddressPtr_value", _wrap_cipher__AddressPtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_Transactions__HandlePtr", _wrap_new_Transactions__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_Transactions__HandlePtr", _wrap_copy_Transactions__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_Transactions__HandlePtr", _wrap_delete_Transactions__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "Transactions__HandlePtr_assign", _wrap_Transactions__HandlePtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "Transactions__HandlePtr_value", _wrap_Transactions__HandlePtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_Transaction__HandlePtr", _wrap_new_Transaction__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_Transaction__HandlePtr", _wrap_copy_Transaction__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_Transaction__HandlePtr", _wrap_delete_Transaction__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "Transaction__HandlePtr_assign", _wrap_Transaction__HandlePtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "Transaction__HandlePtr_value", _wrap_Transaction__HandlePtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_Block__HandlePtr", _wrap_new_Block__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_Block__HandlePtr", _wrap_copy_Block__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_Block__HandlePtr", _wrap_delete_Block__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "Block__HandlePtr_assign", _wrap_Block__HandlePtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "Block__HandlePtr_value", _wrap_Block__HandlePtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_BlockHeader__HandlePtr", _wrap_new_BlockHeader__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_BlockHeader__HandlePtr", _wrap_copy_BlockHeader__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_BlockHeader__HandlePtr", _wrap_delete_BlockHeader__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "BlockHeader__HandlePtr_assign", _wrap_BlockHeader__HandlePtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "BlockHeader__HandlePtr_value", _wrap_BlockHeader__HandlePtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_BlockBody__HandlePtr", _wrap_new_BlockBody__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_BlockBody__HandlePtr", _wrap_copy_BlockBody__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_BlockBody__HandlePtr", _wrap_delete_BlockBody__HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "BlockBody__HandlePtr_assign", _wrap_BlockBody__HandlePtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "BlockBody__HandlePtr_value", _wrap_BlockBody__HandlePtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_Signature_HandlePtr", _wrap_new_Signature_HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_Signature_HandlePtr", _wrap_copy_Signature_HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_Signature_HandlePtr", _wrap_delete_Signature_HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "Signature_HandlePtr_assign", _wrap_Signature_HandlePtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "Signature_HandlePtr_value", _wrap_Signature_HandlePtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_Number_HandlePtr", _wrap_new_Number_HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_Number_HandlePtr", _wrap_copy_Number_HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_Number_HandlePtr", _wrap_delete_Number_HandlePtr);
+SWIGV8_AddStaticFunction(exports_obj, "Number_HandlePtr_assign", _wrap_Number_HandlePtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "Number_HandlePtr_value", _wrap_Number_HandlePtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_CharPtr", _wrap_new_CharPtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_CharPtr", _wrap_copy_CharPtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_CharPtr", _wrap_delete_CharPtr);
+SWIGV8_AddStaticFunction(exports_obj, "CharPtr_assign", _wrap_CharPtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "CharPtr_value", _wrap_CharPtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_FeeCalculatorPtr", _wrap_new_FeeCalculatorPtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_FeeCalculatorPtr", _wrap_copy_FeeCalculatorPtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_FeeCalculatorPtr", _wrap_delete_FeeCalculatorPtr);
+SWIGV8_AddStaticFunction(exports_obj, "FeeCalculatorPtr_assign", _wrap_FeeCalculatorPtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "FeeCalculatorPtr_value", _wrap_FeeCalculatorPtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_FeeCalcFuncPtr", _wrap_new_FeeCalcFuncPtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_FeeCalcFuncPtr", _wrap_copy_FeeCalcFuncPtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_FeeCalcFuncPtr", _wrap_delete_FeeCalcFuncPtr);
+SWIGV8_AddStaticFunction(exports_obj, "FeeCalcFuncPtr_assign", _wrap_FeeCalcFuncPtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "FeeCalcFuncPtr_value", _wrap_FeeCalcFuncPtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "new_coin__BlockPtr", _wrap_new_coin__BlockPtr);
+SWIGV8_AddStaticFunction(exports_obj, "copy_coin__BlockPtr", _wrap_copy_coin__BlockPtr);
+SWIGV8_AddStaticFunction(exports_obj, "delete_coin__BlockPtr", _wrap_delete_coin__BlockPtr);
+SWIGV8_AddStaticFunction(exports_obj, "coin__BlockPtr_assign", _wrap_coin__BlockPtr_assign);
+SWIGV8_AddStaticFunction(exports_obj, "coin__BlockPtr_value", _wrap_coin__BlockPtr_value);
+SWIGV8_AddStaticFunction(exports_obj, "SKY_fee_VerifyTransactionFee", _wrap_SKY_fee_VerifyTransactionFee);
 SWIGV8_AddStaticFunction(exports_obj, "SKY_fee_VerifyTransactionFeeForHours", _wrap_SKY_fee_VerifyTransactionFeeForHours);
 SWIGV8_AddStaticFunction(exports_obj, "SKY_fee_RequiredFee", _wrap_SKY_fee_RequiredFee);
 SWIGV8_AddStaticFunction(exports_obj, "SKY_fee_RemainingHours", _wrap_SKY_fee_RemainingHours);

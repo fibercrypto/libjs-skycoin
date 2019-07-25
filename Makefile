@@ -92,6 +92,6 @@ build-libsky-shared: build-swig ## Build shared library including SWIG wrappers
 	set -ex
 
 	rm -rfv $(JS_SWIG_DIR)/build
-	(cd $(JS_SWIG_DIR) && node-gyp configure build)
+	(cd $(JS_SWIG_DIR) && node-gyp configure build --target=v10.15.1)
 
 build: build-libsky-shared ## Build library Node Libskycoin
