@@ -1,6 +1,6 @@
 {
   "name": "@simelo/libsky-axios",
-  "version": "0.26.0-rc.1",
+  "version": "0.26.1",
   "description": "OpenAPI client for libsky-axios",
   "author": "OpenAPI-Generator Contributors",
   "keywords": [
