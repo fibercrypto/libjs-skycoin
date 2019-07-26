@@ -1,1 +1,0 @@
-{"version":3,"file":"blockSchemaBody.js","sourceRoot":"","sources":["../../model/blockSchemaBody.ts"],"names":[],"mappings":";;AAaA;IAAA;IAeA,CAAC;IAHU,mCAAmB,GAA1B;QACI,OAAO,eAAe,CAAC,gBAAgB,CAAC;IAC5C,CAAC;IAXM,6BAAa,GAAuB,SAAS,CAAC;IAE9C,gCAAgB,GAA0D;QAC7E;YACI,MAAM,EAAE,MAAM;YACd,UAAU,EAAE,MAAM;YAClB,MAAM,EAAE,YAAY;SACvB;KAAK,CAAC;IAKf,sBAAC;CAAA,AAfD,IAeC;AAfY,0CAAe"}
