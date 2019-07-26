@@ -1,6 +1,6 @@
 {
     "name": "@simelo/libsky-node",
-    "version": "0.26.0",
+    "version": "0.26.0-rc.1",
     "description": "NodeJS client for libsky-node",
     "repository": "GIT_USER_ID/GIT_REPO_ID",
     "main": "dist/api.js",
