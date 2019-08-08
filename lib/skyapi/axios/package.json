@@ -1,14 +1,14 @@
 {
-  "name": "@simelo/libsky-axios",
-  "version": "0.26.0-rc.1",
-  "description": "OpenAPI client for libsky-axios",
+  "name": "@simelo/skyapi-axios",
+  "version": "0.27.0",
+  "description": "OpenAPI client for @simelo/skyapi-axios",
   "author": "OpenAPI-Generator Contributors",
   "keywords": [
     "axios",
     "typescript",
     "openapi-client",
     "openapi-generator",
-    "libsky-axios"
+    "@simelo/skyapi-axios"
   ],
   "license": "Unlicense",
   "main": "./dist/index.js",
@@ -20,10 +20,6 @@
   "dependencies": {
     "axios": "^0.18.0"
   },
-  "publishConfig": {
-    "access": "public"
-  },
-  "peerDependencies": {},
   "devDependencies": {
     "@types/node": "^8.0.9",
     "typescript": "^2.4"
