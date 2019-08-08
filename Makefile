@@ -32,9 +32,9 @@ JS_INCLUDE= -I/usr/include/nodejs/src
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	
-install: build-node-client build-node-tester build-axios-client build-axios-tester build-fetch-client build-fetch-tester ## Build all libraries and tester
+install: build-node-client build-node-tester build-axios-client build-axios-tester ## Build all libraries and tester
 
-test: test-node-client test-axios-client test-fetch-client ## Test all clients
+test: test-node-client test-axios-client ## Test all clients
 
 test-node-client: ## Test node client
 	export HOST='https://staging.node.skycoin.net' && \
