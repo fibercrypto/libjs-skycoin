@@ -5,6 +5,13 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "libsky-fetch": "file:../../lib/skyapi/fetch",
-    "mocha": "^6.1.3"
+    "mocha": "^6.1.3",
+    "@types/node": "^8.0.14",
+    "browserify": "^14.4.0",
+    "ts-loader": "^2.3.0",
+    "tsify": "^3.0.1",
+    "typescript": "^2.4.1",
+    "typings": "^2.1.1",
+    "webpack": "^1.13.0"
   }
 }
