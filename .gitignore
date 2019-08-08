@@ -11,3 +11,5 @@ lib/node/node_modules
 tests/axios/npm-debug.log
 tests/node/npm-debug.log
 tests/fetch/npm-debug.log
+lib/skyapi/node/npm-debug.log
+lib/skyapi/fetch/npm-debug.log
