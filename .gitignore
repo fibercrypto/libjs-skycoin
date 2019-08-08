@@ -8,3 +8,5 @@ lib/skycoin/swig.h
 lib/skycoin/build
 tests/node/node_modules
 lib/node/node_modules
+tests/axios/npm-debug.log
+tests/node/npm-debug.log
