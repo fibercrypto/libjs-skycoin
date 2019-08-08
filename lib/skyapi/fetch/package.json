@@ -1,8 +1,8 @@
 {
   "name": "@simelo/skyapi-fetch",
   "version": "0.27.0",
-  "description": "OpenAPI client for skyapi-fetch",
-  "author": "Maykel Arias Torres",
+  "description": "OpenAPI client for @simelo/skyapi-fetch",
+  "author": "OpenAPI-Generator",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts" : {

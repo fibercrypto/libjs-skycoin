@@ -42,4 +42,4 @@ npm install @simelo/skyapi-fetch@0.27.0 --save
 _unPublished (not recommended):_
 
 ```
-npm install @simelo/skyapi-fetch@0.27.0 --save
+npm install PATH_TO_GENERATED_PACKAGE --save
