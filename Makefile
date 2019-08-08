@@ -31,9 +31,9 @@ JS_INCLUDE= -I/usr/include/nodejs/src
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	
-install: build-node-client build-node-tester build-axios-client build-axios-tester ; ## Build all libraries and tester
+install: build-node-client build-node-tester build-axios-client build-axios-tester build-fetch-client build-fetch-tester; ## Build all libraries and tester
 
-test: test-node-client test-axios-client ; ## Test all clients
+test: test-node-client test-axios-client test-fetch-client; ## Test all clients
 
 test-node-client: ## Test node client
 	export HOST='https://staging.node.skycoin.net' && \
@@ -47,11 +47,20 @@ test-axios-client: ## Test axios client
 	export HOST='https://node.skycoin.net' && \
 	(cd ./tests/axios/ && npm run test )
 
+test-fetch-client: ## Test axios client
+	export HOST='https://staging.node.skycoin.net' && \
+	(cd ./tests/fetch/ && npm run test ) && \
+	export HOST='https://node.skycoin.net' && \
+	(cd ./tests/fetch/ && npm run test )
+
 build-axios-client: ## Build axios client
 	(cd $(JS_CLIENT_DIR)/axios/ && npm install && npm run build)
 
 build-node-client: ## Build node client
 	(cd './lib/skyapi/node/' && npm install && npm run build)
+
+build-fetch-client: ## Build fetch client
+	(cd './lib/skyapi/fetch/' && npm install && npm run build)
 
 build-node-tester: ## Build node client tester
 	(cd './tests/node/' && npm install)

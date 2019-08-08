@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "libsky-fetch": "file:../../lib/skyapi/fetch",
+    "mocha": "^6.1.3"
+  }
+}
