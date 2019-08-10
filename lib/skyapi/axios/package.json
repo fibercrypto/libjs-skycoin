@@ -20,6 +20,10 @@
   "dependencies": {
     "axios": "^0.18.0"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {},
   "devDependencies": {
     "@types/node": "^8.0.9",
     "typescript": "^2.4"
