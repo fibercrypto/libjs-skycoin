@@ -11,36 +11,36 @@ before_script:
 script:
 - make test
 - make build
-# jobs:
-#   include:
-#     - stage: Release libsky-axios
-#       before_deploy:
-#         - cd lib/skyapi/axios
-#         - npm install
-#       after_deploy:
-#         - cd ../../../
-#       deploy:
-#         provider: npm
-#         email: marcosmaceowork@gmail.com
-#         skip_cleanup: true
-#         api_key:
-#           secure: "UHqJbdMM5ujvMFsPYHC2iWLamhls+CxEpLuYgCKnjr3tMVg6yKoThwyc7VqjHHZB1hvxpLp2ye/4NYSgUFDBEQcjTQn0wYmKqCNomSkh739jQvUYJ8hbvSLAfeHb6fJFxV5dDt6+fdyg/mBczOFcNApa6YxKbhADGLlsAqcAnDthajDNLGfNc/E64u6KALBJExkH1WcetuMrpkDhS0Ob9l4L8CR1uZvi27icgPrhmkfrw2jFqUHu6jmnFsZvHwn6OGXacF4zEC1LwgagURjHcR3Z2ujqLbxDI8hFl4UPSjiNFtxQZh2MB/RpqDLWArME/97Djdr6O5jCmnyzYOBUeWDDjV62V9camI+1YF9tnTnKeYIt9sg6HrJ7X32yBbNbNFeJkUCX9DGs+P1JoNuT+8LPaK1DTZqPAmG6lH7g+vdFhETZN1Vx6zyHhs2Q6Cv8O6w1w0wQMxIQ4XvvGG5XHTFWQ7noMrBftB7cHaV+V9OJw+SZScBjIH2jRIp6Z0gs2Rfc1d8ANGZYiD5JT8nKk2NkVgVpuxzBs1yYde2UE0aMmR3ZZfsPtXdQXCebromuQpd+cjR1zUZKSq8CKvQMeI89wc7KOnpjwcjS21eMRe5K6DWFCUN1VAFKdhwofF8caM4bY2POpr+F8ikjJZagE6O/rgIFQBqrkZ4lwsEN9c0="
-#         on:
-#           tags: true
-#     - stage: Release lib/skyapi/node 
-#       before_deploy:
-#         - cd lib/skyapi/node
-#         - npm install
-#       after_deploy:
-#         - cd ../../../
-#       deploy:
-#         provider: npm
-#         email: marcosmaceowork@gmail.com
-#         skip_cleanup: true
-#         api_key:
-#           secure: "UHqJbdMM5ujvMFsPYHC2iWLamhls+CxEpLuYgCKnjr3tMVg6yKoThwyc7VqjHHZB1hvxpLp2ye/4NYSgUFDBEQcjTQn0wYmKqCNomSkh739jQvUYJ8hbvSLAfeHb6fJFxV5dDt6+fdyg/mBczOFcNApa6YxKbhADGLlsAqcAnDthajDNLGfNc/E64u6KALBJExkH1WcetuMrpkDhS0Ob9l4L8CR1uZvi27icgPrhmkfrw2jFqUHu6jmnFsZvHwn6OGXacF4zEC1LwgagURjHcR3Z2ujqLbxDI8hFl4UPSjiNFtxQZh2MB/RpqDLWArME/97Djdr6O5jCmnyzYOBUeWDDjV62V9camI+1YF9tnTnKeYIt9sg6HrJ7X32yBbNbNFeJkUCX9DGs+P1JoNuT+8LPaK1DTZqPAmG6lH7g+vdFhETZN1Vx6zyHhs2Q6Cv8O6w1w0wQMxIQ4XvvGG5XHTFWQ7noMrBftB7cHaV+V9OJw+SZScBjIH2jRIp6Z0gs2Rfc1d8ANGZYiD5JT8nKk2NkVgVpuxzBs1yYde2UE0aMmR3ZZfsPtXdQXCebromuQpd+cjR1zUZKSq8CKvQMeI89wc7KOnpjwcjS21eMRe5K6DWFCUN1VAFKdhwofF8caM4bY2POpr+F8ikjJZagE6O/rgIFQBqrkZ4lwsEN9c0="
-#         on:
-#           tags: true
+jobs:
+  include:
+    - stage: Release libsky-axios
+      before_deploy:
+        - cd lib/skyapi/axios
+        - npm install
+      after_deploy:
+        - cd ../../../
+      deploy:
+        provider: npm
+        email: marcosmaceowork@gmail.com
+        skip_cleanup: true
+        api_key:
+          secure: "UHqJbdMM5ujvMFsPYHC2iWLamhls+CxEpLuYgCKnjr3tMVg6yKoThwyc7VqjHHZB1hvxpLp2ye/4NYSgUFDBEQcjTQn0wYmKqCNomSkh739jQvUYJ8hbvSLAfeHb6fJFxV5dDt6+fdyg/mBczOFcNApa6YxKbhADGLlsAqcAnDthajDNLGfNc/E64u6KALBJExkH1WcetuMrpkDhS0Ob9l4L8CR1uZvi27icgPrhmkfrw2jFqUHu6jmnFsZvHwn6OGXacF4zEC1LwgagURjHcR3Z2ujqLbxDI8hFl4UPSjiNFtxQZh2MB/RpqDLWArME/97Djdr6O5jCmnyzYOBUeWDDjV62V9camI+1YF9tnTnKeYIt9sg6HrJ7X32yBbNbNFeJkUCX9DGs+P1JoNuT+8LPaK1DTZqPAmG6lH7g+vdFhETZN1Vx6zyHhs2Q6Cv8O6w1w0wQMxIQ4XvvGG5XHTFWQ7noMrBftB7cHaV+V9OJw+SZScBjIH2jRIp6Z0gs2Rfc1d8ANGZYiD5JT8nKk2NkVgVpuxzBs1yYde2UE0aMmR3ZZfsPtXdQXCebromuQpd+cjR1zUZKSq8CKvQMeI89wc7KOnpjwcjS21eMRe5K6DWFCUN1VAFKdhwofF8caM4bY2POpr+F8ikjJZagE6O/rgIFQBqrkZ4lwsEN9c0="
+        on:
+          tags: true
+    - stage: Release lib/skyapi/node 
+      before_deploy:
+        - cd lib/skyapi/node
+        - npm install
+      after_deploy:
+        - cd ../../../
+      deploy:
+        provider: npm
+        email: marcosmaceowork@gmail.com
+        skip_cleanup: true
+        api_key:
+          secure: "UHqJbdMM5ujvMFsPYHC2iWLamhls+CxEpLuYgCKnjr3tMVg6yKoThwyc7VqjHHZB1hvxpLp2ye/4NYSgUFDBEQcjTQn0wYmKqCNomSkh739jQvUYJ8hbvSLAfeHb6fJFxV5dDt6+fdyg/mBczOFcNApa6YxKbhADGLlsAqcAnDthajDNLGfNc/E64u6KALBJExkH1WcetuMrpkDhS0Ob9l4L8CR1uZvi27icgPrhmkfrw2jFqUHu6jmnFsZvHwn6OGXacF4zEC1LwgagURjHcR3Z2ujqLbxDI8hFl4UPSjiNFtxQZh2MB/RpqDLWArME/97Djdr6O5jCmnyzYOBUeWDDjV62V9camI+1YF9tnTnKeYIt9sg6HrJ7X32yBbNbNFeJkUCX9DGs+P1JoNuT+8LPaK1DTZqPAmG6lH7g+vdFhETZN1Vx6zyHhs2Q6Cv8O6w1w0wQMxIQ4XvvGG5XHTFWQ7noMrBftB7cHaV+V9OJw+SZScBjIH2jRIp6Z0gs2Rfc1d8ANGZYiD5JT8nKk2NkVgVpuxzBs1yYde2UE0aMmR3ZZfsPtXdQXCebromuQpd+cjR1zUZKSq8CKvQMeI89wc7KOnpjwcjS21eMRe5K6DWFCUN1VAFKdhwofF8caM4bY2POpr+F8ikjJZagE6O/rgIFQBqrkZ4lwsEN9c0="
+        on:
+          tags: true
  
 notifications:
   email: false
