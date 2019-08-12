@@ -1,7 +1,7 @@
 {
-    "name": "@simelo/libsky-node",
-    "version": "0.26.0-rc.1",
-    "description": "NodeJS client for libsky-node",
+    "name": "@simelo/skyapi-node",
+    "version": "0.27.0",
+    "description": "NodeJS client for @simelo/skyapi-node",
     "repository": "GIT_USER_ID/GIT_REPO_ID",
     "main": "dist/api.js",
     "types": "dist/api.d.ts",
@@ -18,9 +18,6 @@
         "@types/bluebird": "*",
         "@types/request": "*",
         "rewire": "^3.0.2"
-    },
-    "publishConfig": {
-        "access": "public"
     },
     "devDependencies": {
         "typescript": "^2.4.2",
